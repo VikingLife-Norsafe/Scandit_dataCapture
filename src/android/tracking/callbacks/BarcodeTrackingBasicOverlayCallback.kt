@@ -1,0 +1,171 @@
+/*
+ * This file is part of the Scandit Data Capture SDK
+ *
+ * Copyright (C) 2019- Scandit AG. All rights reserved.
+ */
+
+package com.scandit.datacapture.cordova.barcode.tracking.callbacks
+
+import com.scandit.datacapture.barcode.tracking.data.TrackedBarcode
+import com.scandit.datacapture.barcode.tracking.ui.overlay.BarcodeTrackingBasicOverlay
+import com.scandit.datacapture.cordova.barcode.data.SerializableFinishBasicOverlayCallbackData
+import com.scandit.datacapture.cordova.barcode.factories.BarcodeCaptureActionFactory
+import com.scandit.datacapture.cordova.core.callbacks.Callback
+import com.scandit.datacapture.cordova.core.handlers.ActionsHandler
+import com.scandit.datacapture.cordova.core.workers.BackgroundWorker
+import com.scandit.datacapture.cordova.core.workers.Worker
+import com.scandit.datacapture.core.ui.style.Brush
+import org.apache.cordova.CallbackContext
+import org.json.JSONArray
+import org.json.JSONObject
+import java.util.concurrent.Semaphore
+import java.util.concurrent.atomic.AtomicReference
+
+class BarcodeTrackingBasicOverlayCallback(
+        private val actionsHandler: ActionsHandler,
+        callbackContext: CallbackContext,
+        private val overlayListenerWorker: Worker = BackgroundWorker("overlay-listener-queue")
+) : Callback(callbackContext) {
+
+    private val semaphore = Semaphore(0)
+
+    private val latestStateData = AtomicReference<SerializableFinishBasicOverlayCallbackData?>()
+
+    fun brushForTrackedBarcode(
+            overlay: BarcodeTrackingBasicOverlay,
+            trackedBarcode: TrackedBarcode,
+            switchToOverlayWorker: Boolean
+    ): Brush? {
+        if (disposed.get()) return null
+
+        if (switchToOverlayWorker) {
+            overlayListenerWorker.post {
+                brushForTrackedBarcode(overlay, trackedBarcode)
+            }
+        } else {
+            brushForTrackedBarcode(overlay, trackedBarcode)
+        }
+        return Brush.transparent()
+    }
+
+    private fun brushForTrackedBarcode(
+            overlay: BarcodeTrackingBasicOverlay, trackedBarcode: TrackedBarcode
+    ) {
+        actionsHandler.addAction(
+                BarcodeCaptureActionFactory.SEND_BRUSH_FOR_TRACKED_BARCODE,
+                JSONArray().apply {
+                    put(
+                            JSONObject(
+                                    mapOf(
+                                            FIELD_TRACKED_BARCODE to trackedBarcode.toJson()
+                                    )
+                            )
+                    )
+                },
+                callbackContext
+        )
+        lockAndWait()
+        onUnlock(overlay, trackedBarcode)
+    }
+
+    fun onTrackedBarcodeTapped(
+            overlay: BarcodeTrackingBasicOverlay,
+            trackedBarcode: TrackedBarcode,
+            switchToOverlayWorker: Boolean
+    ) {
+        if (disposed.get()) return
+
+        if (switchToOverlayWorker) {
+            overlayListenerWorker.post {
+                onTrackedBarcodeTapped(overlay, trackedBarcode)
+            }
+        } else {
+            onTrackedBarcodeTapped(overlay, trackedBarcode)
+        }
+    }
+
+    private fun onTrackedBarcodeTapped(
+            overlay: BarcodeTrackingBasicOverlay, trackedBarcode: TrackedBarcode
+    ) {
+        actionsHandler.addAction(
+                BarcodeCaptureActionFactory.SEND_DID_TAP_TRACKED_BARCODE,
+                JSONArray().apply {
+                    put(
+                            JSONObject(
+                                    mapOf(
+                                            FIELD_TRACKED_BARCODE to trackedBarcode.toJson()
+                                    )
+                            )
+                    )
+                },
+                callbackContext
+        )
+    }
+
+    private fun onUnlock(overlay: BarcodeTrackingBasicOverlay, trackedBarcode: TrackedBarcode) {
+        latestStateData.get()?.let { latestData ->
+            setBrushForTrackedBarcode(
+                    trackedBarcode, latestData.brush, overlay, switchToOverlayWorker = false
+            )
+            latestStateData.set(null)
+        } ?: setBrushForTrackedBarcode(
+                // If we don't have the latestData, use the overlay default brush.
+                trackedBarcode, overlay.defaultBrush, overlay, switchToOverlayWorker = false
+        )
+    }
+
+    fun setBrushForTrackedBarcode(
+            trackedBarcode: TrackedBarcode,
+            brush: Brush?,
+            overlay: BarcodeTrackingBasicOverlay,
+            switchToOverlayWorker: Boolean
+    ) {
+        if (disposed.get()) return
+
+        if (switchToOverlayWorker) {
+            overlayListenerWorker.post {
+                overlay.setBrushForTrackedBarcode(trackedBarcode, brush)
+            }
+        } else {
+            overlay.setBrushForTrackedBarcode(trackedBarcode, brush)
+        }
+    }
+
+    fun clearBrushes(overlay: BarcodeTrackingBasicOverlay, switchToOverlayWorker: Boolean) {
+        if (disposed.get()) return
+
+        if (switchToOverlayWorker) {
+            overlayListenerWorker.post {
+                overlay.clearTrackedBarcodeBrushes()
+            }
+        } else {
+            overlay.clearTrackedBarcodeBrushes()
+        }
+    }
+
+    private fun lockAndWait() {
+        semaphore.acquire()
+    }
+
+    fun forceRelease() {
+        onFinishCallback(null)
+    }
+
+    private fun unlock() {
+        semaphore.release()
+    }
+
+    fun onFinishCallback(data: SerializableFinishBasicOverlayCallbackData?) {
+        latestStateData.set(data)
+        unlock()
+    }
+
+    override fun dispose() {
+        super.dispose()
+        forceRelease()
+    }
+
+    companion object {
+        private const val FIELD_TRACKED_BARCODE = "trackedBarcode"
+    }
+}

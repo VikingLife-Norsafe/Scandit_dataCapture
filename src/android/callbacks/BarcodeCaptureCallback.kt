@@ -1,0 +1,123 @@
+/*
+ * This file is part of the Scandit Data Capture SDK
+ *
+ * Copyright (C) 2019- Scandit AG. All rights reserved.
+ */
+
+package com.scandit.datacapture.cordova.barcode.callbacks
+
+import com.scandit.datacapture.barcode.capture.BarcodeCapture
+import com.scandit.datacapture.barcode.capture.BarcodeCaptureSession
+import com.scandit.datacapture.cordova.barcode.data.SerializableFinishModeCallbackData
+import com.scandit.datacapture.cordova.barcode.factories.BarcodeCaptureActionFactory
+import com.scandit.datacapture.cordova.core.callbacks.Callback
+import com.scandit.datacapture.cordova.core.handlers.ActionsHandler
+import com.scandit.datacapture.core.data.FrameData
+import org.apache.cordova.CallbackContext
+import org.json.JSONArray
+import org.json.JSONObject
+import java.util.concurrent.Semaphore
+import java.util.concurrent.atomic.AtomicReference
+
+class BarcodeCaptureCallback(
+        private val actionsHandler: ActionsHandler,
+        callbackContext: CallbackContext
+) : Callback(callbackContext) {
+
+    private val semaphore = Semaphore(0)
+
+    private val latestStateData = AtomicReference<SerializableFinishModeCallbackData?>(null)
+
+    fun onSessionUpdated(
+            barcodeCapture: BarcodeCapture,
+            session: BarcodeCaptureSession,
+            frameData: FrameData
+    ) {
+        if (disposed.get()) return
+        actionsHandler.addAction(
+                BarcodeCaptureActionFactory.SEND_SESSION_UPDATED_EVENT,
+                JSONArray().apply {
+                    put(
+                            JSONObject(
+                                    mapOf(
+                                            FIELD_SESSION to session.toJson(),
+                                            FIELD_FRAME_DATA to serializeFrameData(
+                                                    frameData
+                                            ).toString()
+                                    )
+                            )
+                    )
+                },
+                callbackContext
+        )
+        lockAndWait()
+        onUnlock(barcodeCapture)
+    }
+
+    fun onBarcodeScanned(
+            barcodeCapture: BarcodeCapture,
+            session: BarcodeCaptureSession,
+            frameData: FrameData
+    ) {
+        if (disposed.get()) return
+        actionsHandler.addAction(
+                BarcodeCaptureActionFactory.SEND_BARCODE_SCANNED_EVENT,
+                JSONArray().apply {
+                    put(
+                            JSONObject(
+                                    mapOf(
+                                            FIELD_SESSION to session.toJson(),
+                                            FIELD_FRAME_DATA to serializeFrameData(// TODO [SDC-2001] -> add frame data serialization
+                                                    frameData
+                                            ).toString()
+                                    )
+                            )
+                    )
+                },
+                callbackContext
+        )
+        lockAndWait()
+        onUnlock(barcodeCapture)
+    }
+
+    private fun onUnlock(barcodeCapture: BarcodeCapture) {
+        latestStateData.get()?.let { latestData ->
+            barcodeCapture.isEnabled = latestData.enabled
+            latestStateData.set(null)
+        }
+        // If we don't have the latestData, it means no listener is set from js, so we do nothing.
+    }
+
+    private fun lockAndWait() {
+        semaphore.acquire()
+    }
+
+    fun onFinishCallback(finishModeCallbackData: SerializableFinishModeCallbackData?) {
+        latestStateData.set(finishModeCallbackData)
+        unlock()
+    }
+
+    fun forceRelease() {
+        onFinishCallback(null)
+    }
+
+    private fun unlock() {
+        semaphore.release()
+    }
+
+    private fun serializeFrameData(frameData: FrameData): JSONObject = JSONObject(
+            mapOf(
+                    FIELD_FRAME_DATA to JSONObject()
+            )
+    )
+
+    override fun dispose() {
+        super.dispose()
+        forceRelease()
+    }
+
+    companion object {
+        private const val FIELD_SESSION = "session"
+        private const val FIELD_FRAME_DATA = "frameData"
+    }
+}
