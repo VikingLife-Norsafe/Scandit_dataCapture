@@ -16,15 +16,17 @@ import com.scandit.datacapture.core.data.FrameData
 import org.apache.cordova.CallbackContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class BarcodeCaptureCallback(
         private val actionsHandler: ActionsHandler,
         callbackContext: CallbackContext
 ) : Callback(callbackContext) {
 
-    private val semaphore = Semaphore(0)
+    private val lock = ReentrantLock(true)
+    private val condition = lock.newCondition()
 
     private val latestStateData = AtomicReference<SerializableFinishModeCallbackData?>(null)
 
@@ -34,24 +36,27 @@ class BarcodeCaptureCallback(
             frameData: FrameData
     ) {
         if (disposed.get()) return
-        actionsHandler.addAction(
-                BarcodeCaptureActionFactory.SEND_SESSION_UPDATED_EVENT,
-                JSONArray().apply {
-                    put(
-                            JSONObject(
-                                    mapOf(
-                                            FIELD_SESSION to session.toJson(),
-                                            FIELD_FRAME_DATA to serializeFrameData(
-                                                    frameData
-                                            ).toString()
-                                    )
-                            )
-                    )
-                },
-                callbackContext
-        )
-        lockAndWait()
-        onUnlock(barcodeCapture)
+
+        lock.withLock {
+            actionsHandler.addAction(
+                    BarcodeCaptureActionFactory.SEND_SESSION_UPDATED_EVENT,
+                    JSONArray().apply {
+                        put(
+                                JSONObject(
+                                        mapOf(
+                                                FIELD_SESSION to session.toJson(),
+                                                FIELD_FRAME_DATA to serializeFrameData(
+                                                        frameData
+                                                ).toString()
+                                        )
+                                )
+                        )
+                    },
+                    callbackContext
+            )
+            lockAndWait()
+            onUnlock(barcodeCapture)
+        }
     }
 
     fun onBarcodeScanned(
@@ -60,24 +65,27 @@ class BarcodeCaptureCallback(
             frameData: FrameData
     ) {
         if (disposed.get()) return
-        actionsHandler.addAction(
-                BarcodeCaptureActionFactory.SEND_BARCODE_SCANNED_EVENT,
-                JSONArray().apply {
-                    put(
-                            JSONObject(
-                                    mapOf(
-                                            FIELD_SESSION to session.toJson(),
-                                            FIELD_FRAME_DATA to serializeFrameData(// TODO [SDC-2001] -> add frame data serialization
-                                                    frameData
-                                            ).toString()
-                                    )
-                            )
-                    )
-                },
-                callbackContext
-        )
-        lockAndWait()
-        onUnlock(barcodeCapture)
+
+        lock.withLock {
+            actionsHandler.addAction(
+                    BarcodeCaptureActionFactory.SEND_BARCODE_SCANNED_EVENT,
+                    JSONArray().apply {
+                        put(
+                                JSONObject(
+                                        mapOf(
+                                                FIELD_SESSION to session.toJson(),
+                                                FIELD_FRAME_DATA to serializeFrameData(// TODO [SDC-2001] -> add frame data serialization
+                                                        frameData
+                                                ).toString()
+                                        )
+                                )
+                        )
+                    },
+                    callbackContext
+            )
+            lockAndWait()
+            onUnlock(barcodeCapture)
+        }
     }
 
     private fun onUnlock(barcodeCapture: BarcodeCapture) {
@@ -89,7 +97,7 @@ class BarcodeCaptureCallback(
     }
 
     private fun lockAndWait() {
-        semaphore.acquire()
+        condition.await()
     }
 
     fun onFinishCallback(finishModeCallbackData: SerializableFinishModeCallbackData?) {
@@ -98,11 +106,15 @@ class BarcodeCaptureCallback(
     }
 
     fun forceRelease() {
-        onFinishCallback(null)
+        lock.withLock {
+            condition.signalAll()
+        }
     }
 
     private fun unlock() {
-        semaphore.release()
+        lock.withLock {
+            condition.signal()
+        }
     }
 
     private fun serializeFrameData(frameData: FrameData): JSONObject = JSONObject(

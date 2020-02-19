@@ -8,7 +8,7 @@ import {
 } from 'Barcode';
 import { CameraSettings, PrivateCameraSettings } from 'Camera+Related';
 import { Color, PrivateColor } from 'Common';
-import { CameraSettingsDefaultsJSON } from 'CoreDefaults';
+import { CameraSettingsDefaultsJSON, PrivateCameraSettingsDefaults } from 'CoreDefaults';
 
 export interface Defaults {
   SymbologySettings: {
@@ -109,12 +109,12 @@ export const defaultsFromJSON: (json: DefaultsJSON) => Defaults = (json: Default
         codeDuplicateFilter: json.BarcodeCapture.BarcodeCaptureSettings.codeDuplicateFilter,
       },
 
-      RecommendedCameraSettings: (CameraSettings as any as PrivateCameraSettings)
+      RecommendedCameraSettings: (CameraSettings as any as PrivateCameraSettingsDefaults)
         .fromJSON(json.BarcodeCapture.RecommendedCameraSettings),
     },
 
     BarcodeTracking: {
-      RecommendedCameraSettings: (CameraSettings as any as PrivateCameraSettings)
+      RecommendedCameraSettings: (CameraSettings as any as PrivateCameraSettingsDefaults)
         .fromJSON(json.BarcodeTracking.RecommendedCameraSettings),
 
       BarcodeTrackingBasicOverlay: {

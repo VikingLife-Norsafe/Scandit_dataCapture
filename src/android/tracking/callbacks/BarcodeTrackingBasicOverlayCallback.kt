@@ -20,6 +20,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class BarcodeTrackingBasicOverlayCallback(
         private val actionsHandler: ActionsHandler,
@@ -27,7 +29,8 @@ class BarcodeTrackingBasicOverlayCallback(
         private val overlayListenerWorker: Worker = BackgroundWorker("overlay-listener-queue")
 ) : Callback(callbackContext) {
 
-    private val semaphore = Semaphore(0)
+    private val lock = ReentrantLock(true)
+    private val condition = lock.newCondition()
 
     private val latestStateData = AtomicReference<SerializableFinishBasicOverlayCallbackData?>()
 
@@ -51,21 +54,23 @@ class BarcodeTrackingBasicOverlayCallback(
     private fun brushForTrackedBarcode(
             overlay: BarcodeTrackingBasicOverlay, trackedBarcode: TrackedBarcode
     ) {
-        actionsHandler.addAction(
-                BarcodeCaptureActionFactory.SEND_BRUSH_FOR_TRACKED_BARCODE,
-                JSONArray().apply {
-                    put(
-                            JSONObject(
-                                    mapOf(
-                                            FIELD_TRACKED_BARCODE to trackedBarcode.toJson()
-                                    )
-                            )
-                    )
-                },
-                callbackContext
-        )
-        lockAndWait()
-        onUnlock(overlay, trackedBarcode)
+        lock.withLock {
+            actionsHandler.addAction(
+                    BarcodeCaptureActionFactory.SEND_BRUSH_FOR_TRACKED_BARCODE,
+                    JSONArray().apply {
+                        put(
+                                JSONObject(
+                                        mapOf(
+                                                FIELD_TRACKED_BARCODE to trackedBarcode.toJson()
+                                        )
+                                )
+                        )
+                    },
+                    callbackContext
+            )
+            lockAndWait()
+            onUnlock(overlay, trackedBarcode)
+        }
     }
 
     fun onTrackedBarcodeTapped(
@@ -144,15 +149,19 @@ class BarcodeTrackingBasicOverlayCallback(
     }
 
     private fun lockAndWait() {
-        semaphore.acquire()
+        condition.await()
     }
 
     fun forceRelease() {
-        onFinishCallback(null)
+        lock.withLock {
+            condition.signalAll()
+        }
     }
 
     private fun unlock() {
-        semaphore.release()
+        lock.withLock {
+            condition.signal()
+        }
     }
 
     fun onFinishCallback(data: SerializableFinishBasicOverlayCallbackData?) {

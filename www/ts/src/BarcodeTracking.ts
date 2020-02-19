@@ -20,11 +20,11 @@ export interface PrivateBarcodeTracking extends PrivateDataCaptureMode {
 
 export class BarcodeTracking extends DefaultSerializeable implements DataCaptureMode {
     public get isEnabled(): boolean {
-        return this._enabled;
+        return this._isEnabled;
     }
 
-    public set isEnabled(enabled: boolean) {
-        this._enabled = enabled;
+    public set isEnabled(isEnabled: boolean) {
+        this._isEnabled = isEnabled;
         if (!this.isInListenerCallback) {
             // If we're "in" a listener callback, we don't want to deserialize the context to update the enabled state,
             // but rather pass that back to be applied in the native callback.
@@ -42,7 +42,7 @@ export class BarcodeTracking extends DefaultSerializeable implements DataCapture
 
     private type = 'barcodeTracking';
     @nameForSerialization('enabled')
-    private _enabled: boolean = false;
+    private _isEnabled: boolean = true;
 
     private settings: BarcodeTrackingSettings;
 
