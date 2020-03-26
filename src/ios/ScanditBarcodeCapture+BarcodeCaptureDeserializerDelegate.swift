@@ -7,8 +7,9 @@ extension ScanditBarcodeCapture: BarcodeCaptureDeserializerDelegate {
         let JSONString = JSONValue.jsonString()
 
         guard let data = JSONString.data(using: .utf8),
-            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let enabled = json?["enabled"] as? Bool else {
+            let jsonObject = try? JSONSerialization.jsonObject(with: data),
+            let json = jsonObject as? [String: Any],
+            let enabled = json["enabled"] as? Bool else {
                 return
         }
         mode.isEnabled = enabled
