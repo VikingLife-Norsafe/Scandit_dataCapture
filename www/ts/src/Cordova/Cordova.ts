@@ -41,4 +41,10 @@ export enum CordovaFunction {
   SubscribeBarcodeTrackingBasicOverlayListener = 'subscribeBarcodeTrackingBasicOverlayListener',
   SetBrushForTrackedBarcode = 'setBrushForTrackedBarcode',
   ClearTrackedBarcodeBrushes = 'clearTrackedBarcodeBrushes',
+
+  SubscribeBarcodeTrackingAdvancedOverlayListener = 'subscribeBarcodeTrackingAdvancedOverlayListener',
+  SetViewForTrackedBarcode = 'setViewForTrackedBarcode',
+  SetAnchorForTrackedBarcode = 'setAnchorForTrackedBarcode',
+  SetOffsetForTrackedBarcode = 'setOffsetForTrackedBarcode',
+  ClearTrackedBarcodeViews = 'clearTrackedBarcodeViews',
 }

@@ -6,29 +6,53 @@
 
 package com.scandit.datacapture.cordova.barcode.utils
 
-import com.scandit.datacapture.cordova.barcode.actions.ActionSendBarcodeScanned
-import com.scandit.datacapture.cordova.barcode.actions.ActionSendBrushForTrackedBarcode
-import com.scandit.datacapture.cordova.barcode.actions.ActionSendSessionUpdated
-import com.scandit.datacapture.cordova.barcode.actions.ActionSendTrackingSessionUpdated
+import com.scandit.datacapture.cordova.barcode.factories.BarcodeCaptureActionFactory
 import com.scandit.datacapture.cordova.core.data.SerializableCallbackAction
 import org.json.JSONObject
 
 class FinishCallbackHelper {
 
     fun isFinishBarcodeCaptureModeCallback(data: JSONObject): Boolean {
-        return checkFinishCallbackIdFieldForValue(data, ActionSendBarcodeScanned.ACTION_NAME)
-                || checkFinishCallbackIdFieldForValue(data, ActionSendSessionUpdated.ACTION_NAME)
+        return checkFinishCallbackIdFieldForValue(
+                data, BarcodeCaptureActionFactory.ACTION_BARCODE_SCANNED
+        ) || checkFinishCallbackIdFieldForValue(
+                data, BarcodeCaptureActionFactory.ACTION_CAPTURE_SESSION_UPDATED
+        )
     }
 
     fun isFinishBarcodeTrackingModeCallback(data: JSONObject): Boolean {
         return checkFinishCallbackIdFieldForValue(
-                data, ActionSendTrackingSessionUpdated.ACTION_NAME
+                data, BarcodeCaptureActionFactory.ACTION_TRACKING_SESSION_UPDATED
         )
     }
 
-    fun isFinishBarcodeTrackingOverlayCallback(data: JSONObject): Boolean {
+    fun isFinishBarcodeTrackingBasicOverlayCallback(data: JSONObject): Boolean {
         return checkFinishCallbackIdFieldForValue(
-                data, ActionSendBrushForTrackedBarcode.ACTION_NAME
+                data, BarcodeCaptureActionFactory.ACTION_BRUSH_FOR_TRACKED_BARCODE
+        )
+    }
+
+    fun isFinishBarcodeTrackingAdvancedOverlayViewCallback(data: JSONObject): Boolean {
+        return checkFinishCallbackIdFieldForValue(
+                data, BarcodeCaptureActionFactory.ACTION_VIEW_FOR_TRACKED_BARCODE
+        )
+    }
+
+    fun isFinishBarcodeTrackingAdvancedOverlayOffsetCallback(data: JSONObject): Boolean {
+        return checkFinishCallbackIdFieldForValue(
+                data, BarcodeCaptureActionFactory.ACTION_OFFSET_FOR_TRACKED_BARCODE
+        )
+    }
+
+    fun isFinishBarcodeTrackingAdvancedOverlayAnchorCallback(data: JSONObject): Boolean {
+        return checkFinishCallbackIdFieldForValue(
+            data, BarcodeCaptureActionFactory.ACTION_ANCHOR_FOR_TRACKED_BARCODE
+        )
+    }
+
+    fun isFinishBarcodeTrackingAdvancedOverlayTapCallback(data: JSONObject): Boolean {
+        return checkFinishCallbackIdFieldForValue(
+            data, BarcodeCaptureActionFactory.ACTION_TAP_VIEW_FOR_TRACKED_BARCODE
         )
     }
 

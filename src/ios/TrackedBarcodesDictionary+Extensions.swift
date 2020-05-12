@@ -1,9 +1,9 @@
 import ScanditBarcodeCapture
 
-extension BarcodeTrackingSession {
+extension Dictionary where Key == NSNumber, Value == TrackedBarcode {
     func trackedBarcode(withID id: String) -> TrackedBarcode? {
         guard let trackedBarcodeID = Int(id),
-            let trackedBarcode = trackedBarcodes[NSNumber(integerLiteral: trackedBarcodeID)] else {
+            let trackedBarcode = self[NSNumber(integerLiteral: trackedBarcodeID)] else {
                 return nil
         }
 

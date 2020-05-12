@@ -3,10 +3,12 @@
 import { PrivateTrackedBarcode, TrackedBarcode, TrackedBarcodeJSON } from 'Barcode';
 import { BarcodeTracking, PrivateBarcodeTracking } from 'BarcodeTracking';
 import { PointWithUnit } from 'Common';
+import { BarcodeTrackingAdvancedOverlayProxy } from 'Cordova/BarcodeTrackingAdvancedOverlayProxy';
 import { BarcodeTrackingBasicOverlayProxy } from 'Cordova/BarcodeTrackingBasicOverlayProxy';
 import { Cordova } from 'Cordova/Cordova';
 import { Anchor, DataCaptureOverlay, DataCaptureView } from 'DataCaptureView';
 import { DefaultSerializeable, ignoreFromSerialization, nameForSerialization } from 'Serializeable';
+import { TrackedBarcodeView } from 'TrackedBarcodeView';
 import { Brush } from 'Viewfinder';
 
 export interface BarcodeTrackingSessionJSON {
@@ -73,13 +75,12 @@ export class BarcodeTrackingSession {
 
 export interface BarcodeTrackingListener {
   // TODO: adjust when readding framedata to the api https://jira.scandit.com/browse/SDC-1159
-  // TODO: mark as optional requirements: https://jira.scandit.com/browse/SDC-1772
-  didUpdateSession(barcodeTracking: BarcodeTracking, session: BarcodeTrackingSession): void;
+  didUpdateSession?(barcodeTracking: BarcodeTracking, session: BarcodeTrackingSession): void;
 }
 
 export interface BarcodeTrackingBasicOverlayListener {
-  brushForTrackedBarcode(overlay: BarcodeTrackingBasicOverlay, trackedBarcode: TrackedBarcode): Optional<Brush>;
-  didTapTrackedBarcode(overlay: BarcodeTrackingBasicOverlay, trackedBarcode: TrackedBarcode): void;
+  brushForTrackedBarcode?(overlay: BarcodeTrackingBasicOverlay, trackedBarcode: TrackedBarcode): Optional<Brush>;
+  didTapTrackedBarcode?(overlay: BarcodeTrackingBasicOverlay, trackedBarcode: TrackedBarcode): void;
 }
 
 export interface PrivateBarcodeTrackingBasicOverlay {
@@ -89,6 +90,7 @@ export interface PrivateBarcodeTrackingBasicOverlay {
 export class BarcodeTrackingBasicOverlay extends DefaultSerializeable implements DataCaptureOverlay {
   private type = 'barcodeTrackingBasic';
 
+  @ignoreFromSerialization
   private barcodeTracking: BarcodeTracking;
 
   @nameForSerialization('defaultBrush')
@@ -163,5 +165,76 @@ export class BarcodeTrackingBasicOverlay extends DefaultSerializeable implements
       return;
     }
     this._proxy = BarcodeTrackingBasicOverlayProxy.forOverlay(this);
+  }
+}
+
+export interface BarcodeTrackingAdvancedOverlayListener {
+  viewForTrackedBarcode?(
+    overlay: BarcodeTrackingAdvancedOverlay, trackedBarcode: TrackedBarcode): Promise<Optional<TrackedBarcodeView>>;
+  anchorForTrackedBarcode?(overlay: BarcodeTrackingAdvancedOverlay, trackedBarcode: TrackedBarcode): Anchor;
+  offsetForTrackedBarcode?(overlay: BarcodeTrackingAdvancedOverlay, trackedBarcode: TrackedBarcode): PointWithUnit;
+  didTapViewForTrackedBarcode?(overlay: BarcodeTrackingAdvancedOverlay, trackedBarcode: TrackedBarcode): void;
+}
+
+export interface PrivateBarcodeTrackingAdvancedOverlay {
+  toJSON(): object;
+}
+
+export class BarcodeTrackingAdvancedOverlay extends DefaultSerializeable implements DataCaptureOverlay {
+  private type = 'barcodeTrackingAdvanced';
+
+  @ignoreFromSerialization
+  private barcodeTracking: BarcodeTracking;
+
+  @ignoreFromSerialization
+  public listener: Optional<BarcodeTrackingAdvancedOverlayListener> = null;
+
+  @ignoreFromSerialization
+  private _proxy: BarcodeTrackingAdvancedOverlayProxy;
+
+  private get proxy(): BarcodeTrackingAdvancedOverlayProxy {
+    if (!this._proxy) {
+      this.initialize();
+    }
+    return this._proxy as BarcodeTrackingAdvancedOverlayProxy;
+  }
+
+  public static withBarcodeTrackingForView(
+    barcodeTracking: BarcodeTracking, view: Optional<DataCaptureView>): BarcodeTrackingAdvancedOverlay {
+    const overlay = new BarcodeTrackingAdvancedOverlay();
+    overlay.barcodeTracking = barcodeTracking;
+
+    if (view) {
+      view.addOverlay(overlay);
+    }
+
+    overlay.initialize();
+
+    return overlay;
+  }
+
+  public setViewForTrackedBarcode(
+    view: Promise<Optional<TrackedBarcodeView>>, trackedBarcode: TrackedBarcode): Promise<void> {
+    return this.proxy.setViewForTrackedBarcode(view, trackedBarcode);
+  }
+
+  public setAnchorForTrackedBarcode(anchor: Anchor, trackedBarcode: TrackedBarcode): Promise<void> {
+    return this.proxy.setAnchorForTrackedBarcode(anchor, trackedBarcode);
+  }
+
+  public setOffsetForTrackedBarcode(offset: PointWithUnit, trackedBarcode: TrackedBarcode): Promise<void> {
+    return this.proxy.setOffsetForTrackedBarcode(offset, trackedBarcode);
+  }
+
+  public clearTrackedBarcodeViews(): Promise<void> {
+    return this.proxy.clearTrackedBarcodeViews();
+  }
+
+  private initialize(): void {
+    if (this._proxy) {
+      return;
+    }
+
+    this._proxy = BarcodeTrackingAdvancedOverlayProxy.forOverlay(this);
   }
 }

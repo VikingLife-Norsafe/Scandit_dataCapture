@@ -30,6 +30,7 @@ export enum Symbology {
   MicroQR = 'microQr',
   Code32 = 'code32',
   Lapa4SC = 'lapa4sc',
+  IATATwoOfFive = 'iata2of5',
 }
 
 export interface PrivateSymbologyDescription {

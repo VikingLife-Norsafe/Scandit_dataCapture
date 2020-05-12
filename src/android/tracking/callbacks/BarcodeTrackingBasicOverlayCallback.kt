@@ -18,7 +18,6 @@ import com.scandit.datacapture.core.ui.style.Brush
 import org.apache.cordova.CallbackContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock

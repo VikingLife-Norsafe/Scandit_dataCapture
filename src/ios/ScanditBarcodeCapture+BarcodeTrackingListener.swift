@@ -8,12 +8,13 @@ extension ScanditBarcodeCapture: BarcodeTrackingListener {
             return
         }
 
-        lastBarcodeTrackingSession = session
+        lastTrackedBarcodes = session.trackedBarcodes
+        lastFrameSequenceId = session.frameSequenceId
 
-        let event = ListenerEvent(name: .didUpdateSessionInBarcodeTracking,
+        let listenerEvent = ListenerEvent(name: .didUpdateSessionInBarcodeTracking,
                                   argument: ["session": session.jsonString, "frameData": frameData.toJSON()],
                                   shouldNotifyWhenFinished: true)
-        waitForFinished(.listenerCallback(event), callbackId: callback.id)
-        finishBlockingCallback(with: barcodeTracking)
+        waitForFinished(listenerEvent, callbackId: callback.id)
+        finishBlockingCallback(with: barcodeTracking, for: listenerEvent)
     }
 }

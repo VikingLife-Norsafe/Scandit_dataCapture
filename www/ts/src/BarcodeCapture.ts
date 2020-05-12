@@ -46,7 +46,7 @@ export class BarcodeCapture extends DefaultSerializeable implements DataCaptureM
   }
 
   public static get recommendedCameraSettings(): CameraSettings {
-    return Cordova.defaults.BarcodeCapture.RecommendedCameraSettings;
+    return new CameraSettings(Cordova.defaults.BarcodeCapture.RecommendedCameraSettings);
   }
 
   private type = 'barcodeCapture';

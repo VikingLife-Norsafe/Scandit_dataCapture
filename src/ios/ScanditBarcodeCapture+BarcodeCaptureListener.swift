@@ -8,11 +8,11 @@ extension ScanditBarcodeCapture: BarcodeCaptureListener {
             return
         }
 
-        let event = ListenerEvent(name: .didScanInBarcodeCapture,
+        let listenerEvent = ListenerEvent(name: .didScanInBarcodeCapture,
                                   argument: ["session": session.jsonString, "frameData": frameData.toJSON()],
                                   shouldNotifyWhenFinished: true)
-        waitForFinished(.listenerCallback(event), callbackId: callback.id)
-        finishBlockingCallback(with: barcodeCapture)
+        waitForFinished(listenerEvent, callbackId: callback.id)
+        finishBlockingCallback(with: barcodeCapture, for: listenerEvent)
     }
 
     func barcodeCapture(_ barcodeCapture: BarcodeCapture,
@@ -22,11 +22,11 @@ extension ScanditBarcodeCapture: BarcodeCaptureListener {
             return
         }
 
-        let event = ListenerEvent(name: .didUpdateSessionInBarcodeCapture,
+        let listenerEvent = ListenerEvent(name: .didUpdateSessionInBarcodeCapture,
                                   argument: ["session": session.jsonString, "frameData": frameData.toJSON()],
                                   shouldNotifyWhenFinished: true)
-        waitForFinished(.listenerCallback(event), callbackId: callback.id)
-        finishBlockingCallback(with: barcodeCapture)
+        waitForFinished(listenerEvent, callbackId: callback.id)
+        finishBlockingCallback(with: barcodeCapture, for: listenerEvent)
     }
 
     func didStartObserving(_ barcodeCapture: BarcodeCapture) {

@@ -14,12 +14,11 @@ class ActionSubscribeBasicOverlay(
         private val listener: ResultListener
 ) : Action {
 
-    override fun run(args: JSONArray, callbackContext: CallbackContext): Boolean {
-        listener.onBarcodeTrackingBasicOverlaySubscribeActionExecuted(callbackContext)
-        return true
+    override fun run(args: JSONArray, callbackContext: CallbackContext) {
+        listener.onSubscribeToBasicOverlay(callbackContext)
     }
 
     interface ResultListener {
-        fun onBarcodeTrackingBasicOverlaySubscribeActionExecuted(callbackContext: CallbackContext)
+        fun onSubscribeToBasicOverlay(callbackContext: CallbackContext)
     }
 }

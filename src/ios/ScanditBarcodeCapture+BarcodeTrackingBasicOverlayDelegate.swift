@@ -7,19 +7,19 @@ extension ScanditBarcodeCapture: BarcodeTrackingBasicOverlayDelegate {
             return overlay.defaultBrush
         }
 
-        let event = ListenerEvent(name: .brushForTrackedBarcode,
+        let listenerEvent = ListenerEvent(name: .brushForTrackedBarcode,
                                   argument: ["trackedBarcode": trackedBarcode.jsonString],
                                   shouldNotifyWhenFinished: true)
 
         // This callback is called on the main thread, so, if we wait for the JS layer to come back with a brush,
         // that'll block the main thread, so the 'finishCallback' can't get through to resolve the block.
-        overlayListenerQueue.async { [weak self] in
+        basicOverlayListenerQueue.async { [weak self] in
             guard let self = self else {
                 return
             }
 
-            self.waitForFinished(.listenerCallback(event), callbackId: callback.id)
-            self.finishBlockingCallback(with: overlay, and: trackedBarcode)
+            self.waitForFinished(listenerEvent, callbackId: callback.id)
+            self.finishBlockingCallback(with: overlay, and: trackedBarcode, for: listenerEvent)
         }
 
         return Brush.transparent

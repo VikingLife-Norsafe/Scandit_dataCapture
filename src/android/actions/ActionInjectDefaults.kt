@@ -21,18 +21,18 @@ import com.scandit.datacapture.cordova.barcode.data.defaults.SerializableBarcode
 import com.scandit.datacapture.cordova.barcode.data.defaults.SerializableSymbologySettingsDefaults
 import com.scandit.datacapture.cordova.barcode.data.defaults.SerializableTrackingBasicOverlayDefaults
 import com.scandit.datacapture.cordova.core.actions.Action
+import com.scandit.datacapture.cordova.core.actions.ActionJsonParseErrorResultListener
 import com.scandit.datacapture.cordova.core.data.defaults.SerializableBrushDefaults
 import com.scandit.datacapture.cordova.core.data.defaults.SerializableCameraSettingsDefault
 import org.apache.cordova.CallbackContext
 import org.json.JSONArray
 import org.json.JSONException
-import org.json.JSONObject
 
 class ActionInjectDefaults(
         private val listener: ResultListener
 ) : Action {
 
-    override fun run(args: JSONArray, callbackContext: CallbackContext): Boolean {
+    override fun run(args: JSONArray, callbackContext: CallbackContext) {
         try {
             val captureSettings = BarcodeCaptureSettings()
             val brush = BarcodeCaptureOverlay.defaultBrush()
@@ -74,17 +74,17 @@ class ActionInjectDefaults(
                                     )
                             )
                     )
-            ).toJson()
-            listener.onInjectDefaultsActionExecuted(defaults, callbackContext)
+            )
+            listener.onBarcodeDefaults(defaults, callbackContext)
         } catch (e: JSONException) {
             e.printStackTrace()
             listener.onJsonParseError(e, callbackContext)
         }
-        return true
     }
 
-    interface ResultListener {
-        fun onInjectDefaultsActionExecuted(default: JSONObject, callbackContext: CallbackContext)
-        fun onJsonParseError(error: Throwable, callbackContext: CallbackContext)
+    interface ResultListener : ActionJsonParseErrorResultListener {
+        fun onBarcodeDefaults(
+                defaults: SerializableBarcodeDefaults, callbackContext: CallbackContext
+        )
     }
 }

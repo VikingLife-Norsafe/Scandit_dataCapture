@@ -14,12 +14,11 @@ class ActionSubscribeBarcodeTracking(
         private val listener: ResultListener
 ) : Action {
 
-    override fun run(args: JSONArray, callbackContext: CallbackContext): Boolean {
-        listener.onBarcodeTrackingSubscribeActionExecuted(callbackContext)
-        return true
+    override fun run(args: JSONArray, callbackContext: CallbackContext) {
+        listener.onSubscribeToBarcodeTracking(callbackContext)
     }
 
     interface ResultListener {
-        fun onBarcodeTrackingSubscribeActionExecuted(callbackContext: CallbackContext)
+        fun onSubscribeToBarcodeTracking(callbackContext: CallbackContext)
     }
 }

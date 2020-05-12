@@ -1,28 +1,28 @@
 /*
  * This file is part of the Scandit Data Capture SDK
  *
- * Copyright (C) 2019- Scandit AG. All rights reserved.
+ * Copyright (C) 2020- Scandit AG. All rights reserved.
  */
 
 package com.scandit.datacapture.cordova.barcode.actions
 
-import com.scandit.datacapture.cordova.barcode.data.SerializableBrushAndTrackedBarcode
+import com.scandit.datacapture.cordova.barcode.data.SerializableAdvancedOverlayAnchorActionData
 import com.scandit.datacapture.cordova.core.actions.Action
 import com.scandit.datacapture.cordova.core.actions.ActionJsonParseErrorResultListener
 import org.apache.cordova.CallbackContext
 import org.json.JSONArray
 import org.json.JSONException
 
-class ActionSetBrushForTrackedBarcode(
+class ActionSetAnchorForTrackedBarcode(
         private val listener: ResultListener
 ) : Action {
 
     override fun run(args: JSONArray, callbackContext: CallbackContext) {
         try {
-            val parsedData = SerializableBrushAndTrackedBarcode(
+            val parsedData = SerializableAdvancedOverlayAnchorActionData(
                     args.getJSONObject(0)
             )
-            listener.onBrushForTrackedBarcode(parsedData, callbackContext)
+            listener.onAnchorForTrackedBarcode(parsedData, callbackContext)
         } catch (e: JSONException) {
             e.printStackTrace()
             listener.onJsonParseError(e, callbackContext)
@@ -33,8 +33,9 @@ class ActionSetBrushForTrackedBarcode(
     }
 
     interface ResultListener : ActionJsonParseErrorResultListener {
-        fun onBrushForTrackedBarcode(
-                data: SerializableBrushAndTrackedBarcode, callbackContext: CallbackContext
+        fun onAnchorForTrackedBarcode(
+                data: SerializableAdvancedOverlayAnchorActionData,
+                callbackContext: CallbackContext
         )
     }
 }

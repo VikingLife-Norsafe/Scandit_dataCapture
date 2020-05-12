@@ -14,12 +14,11 @@ class ActionClearTrackedBarcodeBrushes(
         private val listener: ResultListener
 ) : Action {
 
-    override fun run(args: JSONArray, callbackContext: CallbackContext): Boolean {
-        listener.onActionClearTrackedBarcodeBrushesExecuted(callbackContext)
-        return true
+    override fun run(args: JSONArray, callbackContext: CallbackContext) {
+        listener.onClearTrackedBarcodeBrushes(callbackContext)
     }
 
     interface ResultListener {
-        fun onActionClearTrackedBarcodeBrushesExecuted(callbackContext: CallbackContext)
+        fun onClearTrackedBarcodeBrushes(callbackContext: CallbackContext)
     }
 }

@@ -6,8 +6,8 @@
 
 package com.scandit.datacapture.cordova.barcode.callbacks
 
-import com.scandit.datacapture.cordova.barcode.data.SerializableFinishBasicOverlayCallbackData
-import com.scandit.datacapture.cordova.barcode.data.SerializableFinishModeCallbackData
+import com.scandit.datacapture.cordova.barcode.data.*
+import com.scandit.datacapture.cordova.barcode.tracking.callbacks.BarcodeTrackingAdvancedOverlayCallback
 import com.scandit.datacapture.cordova.barcode.tracking.callbacks.BarcodeTrackingBasicOverlayCallback
 import com.scandit.datacapture.cordova.barcode.tracking.callbacks.BarcodeTrackingCallback
 
@@ -22,6 +22,9 @@ class BarcodeCallbackContainer {
     var barcodeTrackingBasicOverlayCallback: BarcodeTrackingBasicOverlayCallback? = null
         private set
 
+    var barcodeTrackingAdvancedOverlayCallback: BarcodeTrackingAdvancedOverlayCallback? = null
+        private set
+
     fun setBarcodeCaptureCallback(barcodeCaptureCallback: BarcodeCaptureCallback) {
         disposeBarcodeCaptureCallback()
         this.barcodeCaptureCallback = barcodeCaptureCallback
@@ -33,16 +36,24 @@ class BarcodeCallbackContainer {
     }
 
     fun setBarcodeTrackingBasicOverlayCallback(
-            barcodeTrackingBasicOverlayCallback: BarcodeTrackingBasicOverlayCallback
+        barcodeTrackingBasicOverlayCallback: BarcodeTrackingBasicOverlayCallback
     ) {
         disposeBarcodeTrackingBasicOverlayCallback()
         this.barcodeTrackingBasicOverlayCallback = barcodeTrackingBasicOverlayCallback
+    }
+
+    fun setBarcodeTrackingAdvancedOverlayCallback(
+        barcodeTrackingAdvancedOverlayCallback: BarcodeTrackingAdvancedOverlayCallback
+    ) {
+        disposeBarcodeTrackingAdvancedOverlayCallback()
+        this.barcodeTrackingAdvancedOverlayCallback = barcodeTrackingAdvancedOverlayCallback
     }
 
     fun disposeAll() {
         disposeBarcodeCaptureCallback()
         disposeBarcodeTrackingCallback()
         disposeBarcodeTrackingBasicOverlayCallback()
+        disposeBarcodeTrackingAdvancedOverlayCallback()
     }
 
     fun onFinishBarcodeCaptureAction(finishData: SerializableFinishModeCallbackData?) {
@@ -53,14 +64,35 @@ class BarcodeCallbackContainer {
         barcodeTrackingCallback?.onFinishCallback(finishData)
     }
 
-    fun onFinishOverlayAction(finishData: SerializableFinishBasicOverlayCallbackData?) {
+    fun onFinishBasicOverlayAction(finishData: SerializableFinishBasicOverlayCallbackData?) {
         barcodeTrackingBasicOverlayCallback?.onFinishCallback(finishData)
+    }
+
+    fun onFinishAdvancedOverlayViewAction(finishData: SerializableFinishAdvancedOverlayViewData?) {
+        barcodeTrackingAdvancedOverlayCallback?.onFinishViewCallback(finishData)
+    }
+
+    fun onFinishAdvancedOverlayOffsetAction(
+        finishData: SerializableFinishAdvancedOverlayOffsetData?
+    ) {
+        barcodeTrackingAdvancedOverlayCallback?.onFinishOffsetCallback(finishData)
+    }
+
+    fun onFinishAdvancedOverlayAnchorAction(
+        finishData: SerializableFinishAdvancedOverlayAnchorData?
+    ) {
+        barcodeTrackingAdvancedOverlayCallback?.onFinishAnchorCallback(finishData)
+    }
+
+    fun onFinishAdvancedOverlayTapAction() {
+        barcodeTrackingAdvancedOverlayCallback?.onFinishTapCallback()
     }
 
     fun forceRelease() {
         barcodeCaptureCallback?.forceRelease()
         barcodeTrackingCallback?.forceRelease()
         barcodeTrackingBasicOverlayCallback?.forceRelease()
+        barcodeTrackingAdvancedOverlayCallback?.forceRelease()
     }
 
     private fun disposeBarcodeCaptureCallback() {
@@ -76,5 +108,10 @@ class BarcodeCallbackContainer {
     private fun disposeBarcodeTrackingBasicOverlayCallback() {
         barcodeTrackingBasicOverlayCallback?.dispose()
         barcodeTrackingBasicOverlayCallback = null
+    }
+
+    private fun disposeBarcodeTrackingAdvancedOverlayCallback() {
+        barcodeTrackingAdvancedOverlayCallback?.dispose()
+        barcodeTrackingAdvancedOverlayCallback = null
     }
 }

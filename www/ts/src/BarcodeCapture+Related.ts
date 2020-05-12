@@ -53,9 +53,8 @@ export interface PrivateBarcodeCaptureSession {
 
 export interface BarcodeCaptureListener {
   // TODO: adjust when readding framedata to the api https://jira.scandit.com/browse/SDC-1159
-  // TODO: mark as optional requirements: https://jira.scandit.com/browse/SDC-1772
-  didScan(barcodeCapture: BarcodeCapture, session: BarcodeCaptureSession): void;
-  didUpdateSession(barcodeCapture: BarcodeCapture, session: BarcodeCaptureSession): void;
+  didScan?(barcodeCapture: BarcodeCapture, session: BarcodeCaptureSession): void;
+  didUpdateSession?(barcodeCapture: BarcodeCapture, session: BarcodeCaptureSession): void;
 }
 
 export class BarcodeCaptureFeedback extends DefaultSerializeable {

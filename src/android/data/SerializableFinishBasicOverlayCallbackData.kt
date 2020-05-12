@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2019- Scandit AG. All rights reserved.
  */
+
 package com.scandit.datacapture.cordova.barcode.data
 
 import com.scandit.datacapture.core.ui.style.Brush

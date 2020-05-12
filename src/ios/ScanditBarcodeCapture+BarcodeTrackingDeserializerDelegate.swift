@@ -15,8 +15,6 @@ extension ScanditBarcodeCapture: BarcodeTrackingDeserializerDelegate {
         mode.isEnabled = enabled
 
         mode.addListener(self)
-
-        lastBarcodeTrackingSession = nil
     }
 
     func barcodeTrackingDeserializer(_ deserializer: BarcodeTrackingDeserializer,
@@ -34,11 +32,26 @@ extension ScanditBarcodeCapture: BarcodeTrackingDeserializerDelegate {
     func barcodeTrackingDeserializer(_ deserializer: BarcodeTrackingDeserializer,
                                      didStartDeserializingBasicOverlay overlay: BarcodeTrackingBasicOverlay,
                                      from JSONValue: JSONValue) {
+        callbackLocks.releaseAll()
+
         overlay.delegate = self
         barcodeTrackingBasicOverlay = overlay
     }
 
     func barcodeTrackingDeserializer(_ deserializer: BarcodeTrackingDeserializer,
                                      didFinishDeserializingBasicOverlay overlay: BarcodeTrackingBasicOverlay,
+                                     from JSONValue: JSONValue) { }
+
+    func barcodeTrackingDeserializer(_ deserializer: BarcodeTrackingDeserializer,
+                                     didStartDeserializingAdvancedOverlay overlay: BarcodeTrackingAdvancedOverlay,
+                                     from JSONValue: JSONValue) {
+        callbackLocks.releaseAll()
+
+        overlay.delegate = self
+        barcodeTrackingAdvancedOverlay = overlay
+    }
+
+    func barcodeTrackingDeserializer(_ deserializer: BarcodeTrackingDeserializer,
+                                     didFinishDeserializingAdvancedOverlay overlay: BarcodeTrackingAdvancedOverlay,
                                      from JSONValue: JSONValue) { }
 }

@@ -7,43 +7,31 @@
 package com.scandit.datacapture.cordova.barcode
 
 import android.Manifest
-import com.scandit.datacapture.barcode.capture.BarcodeCapture
-import com.scandit.datacapture.barcode.capture.BarcodeCaptureDeserializer
-import com.scandit.datacapture.barcode.capture.BarcodeCaptureDeserializerListener
-import com.scandit.datacapture.barcode.capture.BarcodeCaptureListener
-import com.scandit.datacapture.barcode.capture.BarcodeCaptureSession
-import com.scandit.datacapture.barcode.tracking.capture.BarcodeTracking
-import com.scandit.datacapture.barcode.tracking.capture.BarcodeTrackingDeserializer
-import com.scandit.datacapture.barcode.tracking.capture.BarcodeTrackingDeserializerListener
-import com.scandit.datacapture.barcode.tracking.capture.BarcodeTrackingListener
-import com.scandit.datacapture.barcode.tracking.capture.BarcodeTrackingSession
+import android.view.View
+import com.scandit.datacapture.barcode.capture.*
+import com.scandit.datacapture.barcode.tracking.capture.*
 import com.scandit.datacapture.barcode.tracking.data.TrackedBarcode
+import com.scandit.datacapture.barcode.tracking.ui.overlay.BarcodeTrackingAdvancedOverlay
+import com.scandit.datacapture.barcode.tracking.ui.overlay.BarcodeTrackingAdvancedOverlayListener
 import com.scandit.datacapture.barcode.tracking.ui.overlay.BarcodeTrackingBasicOverlay
 import com.scandit.datacapture.barcode.tracking.ui.overlay.BarcodeTrackingBasicOverlayListener
-import com.scandit.datacapture.cordova.barcode.actions.ActionClearTrackedBarcodeBrushes
-import com.scandit.datacapture.cordova.barcode.actions.ActionFinishCallback
-import com.scandit.datacapture.cordova.barcode.actions.ActionInjectDefaults
-import com.scandit.datacapture.cordova.barcode.actions.ActionSendBarcodeScanned
-import com.scandit.datacapture.cordova.barcode.actions.ActionSendBrushForTrackedBarcode
-import com.scandit.datacapture.cordova.barcode.actions.ActionSendSessionUpdated
-import com.scandit.datacapture.cordova.barcode.actions.ActionSendTapOnTrackedBarcode
-import com.scandit.datacapture.cordova.barcode.actions.ActionSendTrackingSessionUpdated
-import com.scandit.datacapture.cordova.barcode.actions.ActionSetBrushForTrackedBarcode
-import com.scandit.datacapture.cordova.barcode.actions.ActionSubscribeBarcodeCapture
-import com.scandit.datacapture.cordova.barcode.actions.ActionSubscribeBarcodeTracking
-import com.scandit.datacapture.cordova.barcode.actions.ActionSubscribeBasicOverlay
+import com.scandit.datacapture.cordova.barcode.actions.*
 import com.scandit.datacapture.cordova.barcode.callbacks.BarcodeCallbackContainer
 import com.scandit.datacapture.cordova.barcode.callbacks.BarcodeCaptureCallback
-import com.scandit.datacapture.cordova.barcode.data.SerializableBrushAndTrackedBarcode
-import com.scandit.datacapture.cordova.barcode.data.SerializableFinishBasicOverlayCallbackData
-import com.scandit.datacapture.cordova.barcode.data.SerializableFinishModeCallbackData
+import com.scandit.datacapture.cordova.barcode.data.*
+import com.scandit.datacapture.cordova.barcode.data.defaults.SerializableBarcodeDefaults
 import com.scandit.datacapture.cordova.barcode.errors.ErrorTrackedBarcodeNotFound
 import com.scandit.datacapture.cordova.barcode.factories.BarcodeCaptureActionFactory
 import com.scandit.datacapture.cordova.barcode.handlers.BarcodeCaptureHandler
+import com.scandit.datacapture.cordova.barcode.tracking.callbacks.BarcodeTrackingAdvancedOverlayCallback
 import com.scandit.datacapture.cordova.barcode.tracking.callbacks.BarcodeTrackingBasicOverlayCallback
 import com.scandit.datacapture.cordova.barcode.tracking.callbacks.BarcodeTrackingCallback
+import com.scandit.datacapture.cordova.barcode.tracking.handlers.BarcodeTrackingAdvancedOverlayHandler
 import com.scandit.datacapture.cordova.barcode.tracking.handlers.BarcodeTrackingBasicOverlayHandler
 import com.scandit.datacapture.cordova.barcode.tracking.handlers.BarcodeTrackingHandler
+import com.scandit.datacapture.cordova.barcode.utils.AdvancedOverlayViewPool
+import com.scandit.datacapture.cordova.core.ScanditCaptureCore
+import com.scandit.datacapture.cordova.core.actions.ActionSend
 import com.scandit.datacapture.cordova.core.communication.CameraPermissionGrantedListener
 import com.scandit.datacapture.cordova.core.communication.ModeDeserializersProvider
 import com.scandit.datacapture.cordova.core.errors.InvalidActionNameError
@@ -51,41 +39,50 @@ import com.scandit.datacapture.cordova.core.errors.JsonParseError
 import com.scandit.datacapture.cordova.core.factories.ActionFactory
 import com.scandit.datacapture.cordova.core.handlers.ActionsHandler
 import com.scandit.datacapture.cordova.core.handlers.CameraPermissionsActionsHandlerHelper
+import com.scandit.datacapture.cordova.core.utils.successAndKeepCallback
+import com.scandit.datacapture.cordova.core.workers.UiWorker
 import com.scandit.datacapture.core.capture.serialization.DataCaptureModeDeserializer
+import com.scandit.datacapture.core.common.geometry.Anchor
+import com.scandit.datacapture.core.common.geometry.MeasureUnit
+import com.scandit.datacapture.core.common.geometry.PointWithUnit
 import com.scandit.datacapture.core.data.FrameData
 import com.scandit.datacapture.core.json.JsonValue
 import com.scandit.datacapture.core.ui.style.Brush
 import org.apache.cordova.CallbackContext
 import org.apache.cordova.CordovaPlugin
-import org.apache.cordova.PluginResult
 import org.json.JSONArray
 import org.json.JSONObject
 
 class ScanditBarcodeCapture : CordovaPlugin(),
-        BarcodeCaptureListener,
-        BarcodeTrackingListener,
-        BarcodeTrackingBasicOverlayListener,
-        BarcodeActionsListeners,
-        BarcodeCaptureDeserializerListener,
-        BarcodeTrackingDeserializerListener,
-        CameraPermissionGrantedListener,
-        ModeDeserializersProvider {
+    BarcodeCaptureListener,
+    BarcodeTrackingListener,
+    BarcodeTrackingBasicOverlayListener,
+    BarcodeTrackingAdvancedOverlayListener,
+    BarcodeActionsListeners,
+    BarcodeCaptureDeserializerListener,
+    BarcodeTrackingDeserializerListener,
+    CameraPermissionGrantedListener,
+    ModeDeserializersProvider {
 
     private val actionFactory: ActionFactory = BarcodeCaptureActionFactory(this)
     private val actionsHandler: ActionsHandler = ActionsHandler(
-            actionFactory, CameraPermissionsActionsHandlerHelper(actionFactory)
+        actionFactory, CameraPermissionsActionsHandlerHelper(actionFactory)
     )
 
     private val barcodeCallbacks: BarcodeCallbackContainer = BarcodeCallbackContainer()
     private val barcodeCaptureHandler: BarcodeCaptureHandler = BarcodeCaptureHandler(this)
     private val barcodeTrackingHandler: BarcodeTrackingHandler = BarcodeTrackingHandler(this)
     private val barcodeTrackingBasicOverlayHandler = BarcodeTrackingBasicOverlayHandler(this)
+    private val barcodeTrackingAdvancedOverlayHandler = BarcodeTrackingAdvancedOverlayHandler(this)
 
     private var lastBarcodeCaptureEnabledState: Boolean = false
     private var lastBarcodeTrackingEnabledState: Boolean = false
 
+    private val uiWorker = UiWorker()
+
     override fun pluginInitialize() {
         super.pluginInitialize()
+        ScanditCaptureCore.addPlugin(serviceName)
 
         if (cordova.hasPermission(Manifest.permission.CAMERA)) {
             onCameraPermissionGranted()
@@ -111,11 +108,12 @@ class ScanditBarcodeCapture : CordovaPlugin(),
         barcodeCaptureHandler.disposeCurrent()
         barcodeTrackingHandler.disposeCurrent()
         barcodeTrackingBasicOverlayHandler.disposeCurrent()
+        barcodeTrackingAdvancedOverlayHandler.disposeCurrent()
         barcodeCallbacks.disposeAll()
     }
 
     override fun execute(
-            action: String, args: JSONArray, callbackContext: CallbackContext
+        action: String, args: JSONArray, callbackContext: CallbackContext
     ): Boolean {
         return try {
             actionsHandler.addAction(action, args, callbackContext)
@@ -129,13 +127,13 @@ class ScanditBarcodeCapture : CordovaPlugin(),
 
     //region BarcodeCaptureListener
     override fun onSessionUpdated(
-            barcodeCapture: BarcodeCapture, session: BarcodeCaptureSession, data: FrameData
+        barcodeCapture: BarcodeCapture, session: BarcodeCaptureSession, data: FrameData
     ) {
         barcodeCallbacks.barcodeCaptureCallback?.onSessionUpdated(barcodeCapture, session, data)
     }
 
     override fun onBarcodeScanned(
-            barcodeCapture: BarcodeCapture, session: BarcodeCaptureSession, data: FrameData
+        barcodeCapture: BarcodeCapture, session: BarcodeCaptureSession, data: FrameData
     ) {
         barcodeCallbacks.barcodeCaptureCallback?.onBarcodeScanned(barcodeCapture, session, data)
     }
@@ -143,7 +141,7 @@ class ScanditBarcodeCapture : CordovaPlugin(),
 
     //region BarcodeTrackingListener
     override fun onSessionUpdated(
-            mode: BarcodeTracking, session: BarcodeTrackingSession, data: FrameData
+        mode: BarcodeTracking, session: BarcodeTrackingSession, data: FrameData
     ) {
         barcodeCallbacks.barcodeTrackingCallback?.onSessionUpdated(mode, session, data)
     }
@@ -151,19 +149,45 @@ class ScanditBarcodeCapture : CordovaPlugin(),
 
     //region BarcodeTrackingBasicOverlayListener
     override fun brushForTrackedBarcode(
-            overlay: BarcodeTrackingBasicOverlay, trackedBarcode: TrackedBarcode
+        overlay: BarcodeTrackingBasicOverlay, trackedBarcode: TrackedBarcode
     ): Brush? {
         return barcodeCallbacks.barcodeTrackingBasicOverlayCallback?.brushForTrackedBarcode(
-                overlay, trackedBarcode, switchToOverlayWorker = true
+            overlay, trackedBarcode, switchToOverlayWorker = true
         )
     }
 
     override fun onTrackedBarcodeTapped(
-            overlay: BarcodeTrackingBasicOverlay, trackedBarcode: TrackedBarcode
+        overlay: BarcodeTrackingBasicOverlay, trackedBarcode: TrackedBarcode
     ) {
         barcodeCallbacks.barcodeTrackingBasicOverlayCallback?.onTrackedBarcodeTapped(
-                overlay, trackedBarcode, switchToOverlayWorker = true
+            overlay, trackedBarcode, switchToOverlayWorker = true
         )
+    }
+    //endregion
+
+    //region BarcodeTrackingAdvancedOverlayListener
+    override fun viewForTrackedBarcode(
+        overlay: BarcodeTrackingAdvancedOverlay, trackedBarcode: TrackedBarcode
+    ): View? {
+        return barcodeCallbacks.barcodeTrackingAdvancedOverlayCallback?.viewForTrackedBarcode(
+            overlay, trackedBarcode, switchToOverlayWorker = true
+        )
+    }
+
+    override fun offsetForTrackedBarcode(
+        overlay: BarcodeTrackingAdvancedOverlay, trackedBarcode: TrackedBarcode, view: View
+    ): PointWithUnit {
+        return barcodeCallbacks.barcodeTrackingAdvancedOverlayCallback?.offsetForTrackedBarcode(
+            overlay, trackedBarcode, switchToOverlayWorker = true
+        ) ?: PointWithUnit(0f, 0f, MeasureUnit.PIXEL)
+    }
+
+    override fun anchorForTrackedBarcode(
+        overlay: BarcodeTrackingAdvancedOverlay, trackedBarcode: TrackedBarcode
+    ): Anchor {
+        return barcodeCallbacks.barcodeTrackingAdvancedOverlayCallback?.anchorForTrackedBarcode(
+            overlay, trackedBarcode, switchToOverlayWorker = true
+        ) ?: Anchor.CENTER
     }
     //endregion
 
@@ -175,18 +199,18 @@ class ScanditBarcodeCapture : CordovaPlugin(),
 
     //region ModeDeserializersProvider
     override fun provideModeDeserializers(): List<DataCaptureModeDeserializer> = listOf(
-            BarcodeCaptureDeserializer().also {
-                it.listener = this
-            },
-            BarcodeTrackingDeserializer().also {
-                it.listener = this
-            }
+        BarcodeCaptureDeserializer().also {
+            it.listener = this
+        },
+        BarcodeTrackingDeserializer().also {
+            it.listener = this
+        }
     )
     //endregion
 
     //region BarcodeCaptureDeserializerListener
     override fun onModeDeserializationFinished(
-            deserializer: BarcodeCaptureDeserializer, mode: BarcodeCapture, json: JsonValue
+        deserializer: BarcodeCaptureDeserializer, mode: BarcodeCapture, json: JsonValue
     ) {
         mode.updateFromJson(json.jsonString())
         mode.isEnabled = json.getByKeyAsBoolean("enabled", false)
@@ -196,7 +220,7 @@ class ScanditBarcodeCapture : CordovaPlugin(),
 
     //region BarcodeTrackingDeserializerListener
     override fun onModeDeserializationFinished(
-            deserializer: BarcodeTrackingDeserializer, mode: BarcodeTracking, json: JsonValue
+        deserializer: BarcodeTrackingDeserializer, mode: BarcodeTracking, json: JsonValue
     ) {
         mode.updateFromJson(json.jsonString())
         mode.isEnabled = json.getByKeyAsBoolean("enabled", false)
@@ -204,11 +228,18 @@ class ScanditBarcodeCapture : CordovaPlugin(),
     }
 
     override fun onBasicOverlayDeserializationStarted(
-            deserializer: BarcodeTrackingDeserializer,
-            overlay: BarcodeTrackingBasicOverlay,
-            json: JsonValue
+        deserializer: BarcodeTrackingDeserializer,
+        overlay: BarcodeTrackingBasicOverlay,
+        json: JsonValue
     ) {
         barcodeTrackingBasicOverlayHandler.attachOverlay(overlay)
+    }
+
+    override fun onAdvancedOverlayDeserializationStarted(
+        deserializer: BarcodeTrackingDeserializer, overlay: BarcodeTrackingAdvancedOverlay,
+        json: JsonValue
+    ) {
+        barcodeTrackingAdvancedOverlayHandler.attachOverlay(overlay)
     }
     //endregion
 
@@ -218,184 +249,233 @@ class ScanditBarcodeCapture : CordovaPlugin(),
     }
 
     //region ActionInjectDefaults.ResultListener
-    override fun onInjectDefaultsActionExecuted(
-            default: JSONObject, callbackContext: CallbackContext
+    override fun onBarcodeDefaults(
+        defaults: SerializableBarcodeDefaults, callbackContext: CallbackContext
     ) {
-        callbackContext.success(default)
+        callbackContext.success(defaults.toJson())
     }
     //endregion
 
     //region ActionSubscribeBarcodeCapture.ResultListener
-    override fun onBarcodeCaptureSubscribeActionExecuted(callbackContext: CallbackContext) {
+    override fun onSubscribeToBarcodeCapture(callbackContext: CallbackContext) {
         barcodeCallbacks.setBarcodeCaptureCallback(
-                BarcodeCaptureCallback(actionsHandler, callbackContext)
+            BarcodeCaptureCallback(actionsHandler, callbackContext)
         )
-        callbackContext.sendPluginResult(// We notify the callback context to keep it alive.
-                PluginResult(PluginResult.Status.OK).apply {
-                    keepCallback = true
-                }
-        )
+        callbackContext.successAndKeepCallback()
     }
     //endregion
 
     //region ActionSubscribeBarcodeTracking.ResultListener
-    override fun onBarcodeTrackingSubscribeActionExecuted(callbackContext: CallbackContext) {
+    override fun onSubscribeToBarcodeTracking(callbackContext: CallbackContext) {
         barcodeCallbacks.setBarcodeTrackingCallback(
-                BarcodeTrackingCallback(actionsHandler, callbackContext)
+            BarcodeTrackingCallback(actionsHandler, callbackContext)
         )
-        callbackContext.sendPluginResult(// We notify the callback context to keep it alive.
-                PluginResult(PluginResult.Status.OK).apply {
-                    keepCallback = true
-                }
-        )
+        callbackContext.successAndKeepCallback()
     }
     //endregion
 
-    //region ActionSendBarcodeScanned.ResultListener
-    override fun onSendBarcodeScannedActionExecuted(
-            message: JSONObject, callbackContext: CallbackContext
+    //region ActionSend.ResultListener
+    override fun onSendAction(
+        actionName: String, message: JSONObject, callbackContext: CallbackContext
     ) {
-        callbackContext.sendPluginResult(
-                PluginResult(PluginResult.Status.OK, message).apply {
-                    keepCallback = true
-                }
-        )
-    }
-    //endregion
-
-    //region ActionSendSessionUpdated.ResultListener
-    override fun onSendSessionUpdatedActionExecuted(
-            message: JSONObject, callbackContext: CallbackContext
-    ) {
-        callbackContext.sendPluginResult(
-                PluginResult(PluginResult.Status.OK, message).apply {
-                    keepCallback = true
-                }
-        )
-    }
-    //endregion
-
-    //region ActionSendTrackingSessionUpdated.ResultListener
-    override fun onSendTrackingSessionUpdatedActionExecuted(
-            message: JSONObject, callbackContext: CallbackContext
-    ) {
-        callbackContext.sendPluginResult(
-                PluginResult(PluginResult.Status.OK, message).apply {
-                    keepCallback = true
-                }
-        )
+        callbackContext.successAndKeepCallback(message)
     }
     //endregion
 
     //region ActionFinishCallback.ResultListener
-    override fun onFinishBarcodeCaptureModeCallbackActionExecuted(
-            finishData: SerializableFinishModeCallbackData?, callbackContext: CallbackContext
+    override fun onFinishBarcodeCaptureMode(
+        finishData: SerializableFinishModeCallbackData?, callbackContext: CallbackContext
     ) {
         barcodeCallbacks.onFinishBarcodeCaptureAction(finishData)
     }
 
-    override fun onFinishBarcodeTrackingModeCallbackActionExecuted(
-            finishData: SerializableFinishModeCallbackData?, callbackContext: CallbackContext
+    override fun onFinishBarcodeTrackingMode(
+        finishData: SerializableFinishModeCallbackData?, callbackContext: CallbackContext
     ) {
         barcodeCallbacks.onFinishBarcodeTrackingAction(finishData)
     }
 
-    override fun onFinishOverlayCallbackActionExecuted(
-            finishData: SerializableFinishBasicOverlayCallbackData?, callbackContext: CallbackContext
+    override fun onFinishBasicOverlay(
+        finishData: SerializableFinishBasicOverlayCallbackData?,
+        callbackContext: CallbackContext
     ) {
-        barcodeCallbacks.onFinishOverlayAction(finishData)
+        barcodeCallbacks.onFinishBasicOverlayAction(finishData)
+    }
+
+    override fun onFinishAdvancedOverlayView(
+        finishData: SerializableFinishAdvancedOverlayViewData?, callbackContext: CallbackContext
+    ) {
+        barcodeCallbacks.onFinishAdvancedOverlayViewAction(finishData)
+    }
+
+    override fun onFinishAdvancedOverlayOffset(
+        finishData: SerializableFinishAdvancedOverlayOffsetData?,
+        callbackContext: CallbackContext
+    ) {
+        barcodeCallbacks.onFinishAdvancedOverlayOffsetAction(finishData)
+    }
+
+    override fun onFinishAdvancedOverlayAnchor(
+        finishData: SerializableFinishAdvancedOverlayAnchorData?,
+        callbackContext: CallbackContext
+    ) {
+        barcodeCallbacks.onFinishAdvancedOverlayAnchorAction(finishData)
+    }
+
+    override fun onFinishAdvancedOverlayTap(
+        callbackContext: CallbackContext
+    ) {
+        barcodeCallbacks.onFinishAdvancedOverlayTapAction()
     }
     //endregion
 
     //region ActionSubscribeBasicOverlay.ResultListener
-    override fun onBarcodeTrackingBasicOverlaySubscribeActionExecuted(
-            callbackContext: CallbackContext
-    ) {
+    override fun onSubscribeToBasicOverlay(callbackContext: CallbackContext) {
         barcodeCallbacks.setBarcodeTrackingBasicOverlayCallback(
-                BarcodeTrackingBasicOverlayCallback(actionsHandler, callbackContext)
+            BarcodeTrackingBasicOverlayCallback(actionsHandler, callbackContext)
         )
-        callbackContext.sendPluginResult(// We notify the callback context to keep it alive
-                PluginResult(PluginResult.Status.OK).apply {
-                    keepCallback = true
-                }
-        )
+        callbackContext.successAndKeepCallback()
     }
     //endregion
 
     //region ActionClearTrackedBarcodeBrushes.ResultListener
-    override fun onActionClearTrackedBarcodeBrushesExecuted(callbackContext: CallbackContext) {
+    override fun onClearTrackedBarcodeBrushes(callbackContext: CallbackContext) {
         val barcodeTrackingBasicOverlayCallback =
-                barcodeCallbacks.barcodeTrackingBasicOverlayCallback
-                        ?: return callbackContext.success()
-        val overlay = barcodeTrackingBasicOverlayHandler.barcodeTrackingBasicOverlay
+            barcodeCallbacks.barcodeTrackingBasicOverlayCallback
                 ?: return callbackContext.success()
+        val overlay = barcodeTrackingBasicOverlayHandler.barcodeTrackingBasicOverlay
+            ?: return callbackContext.success()
 
         barcodeTrackingBasicOverlayCallback.clearBrushes(overlay, switchToOverlayWorker = true)
         callbackContext.success()
     }
     //endregion
 
-    //region ActionSendBrushForTrackedBarcode.ResultListener
-    override fun onSendBrushForTrackedBarcodeActionExecuted(
-            message: JSONObject, callbackContext: CallbackContext
-    ) {
-        callbackContext.sendPluginResult(
-                PluginResult(PluginResult.Status.OK, message).apply {
-                    keepCallback = true
-                }
-        )
-    }
-    //endregion
-
     //region ActionSetBrushForTrackedBarcode.ResultListener
-    override fun onSetBrushForTrackedBarcodeActionExecuted(
-            parsedData: SerializableBrushAndTrackedBarcode, callbackContext: CallbackContext
+    override fun onBrushForTrackedBarcode(
+        data: SerializableBrushAndTrackedBarcode, callbackContext: CallbackContext
     ) {
         val overlay = barcodeTrackingBasicOverlayHandler.barcodeTrackingBasicOverlay
-                ?: return callbackContext.success()
+            ?: return callbackContext.success()
         val barcodeTrackingCallback = barcodeCallbacks.barcodeTrackingCallback
-                ?: return callbackContext.success()
+            ?: return callbackContext.success()
         val barcodeTrackingBasicOverlayCallback =
-                barcodeCallbacks.barcodeTrackingBasicOverlayCallback
-                        ?: return callbackContext.success()
+            barcodeCallbacks.barcodeTrackingBasicOverlayCallback
+                ?: return callbackContext.success()
 
         val trackedBarcode = barcodeTrackingCallback.getTrackedBarcodeFromLatestSession(
-                parsedData.trackedBarcodeId, parsedData.sessionFrameSequenceId
+            data.trackedBarcodeId, data.sessionFrameSequenceId
         )
         if (trackedBarcode == null) {
             ErrorTrackedBarcodeNotFound().sendResult(callbackContext)
         } else {
             barcodeTrackingBasicOverlayCallback.setBrushForTrackedBarcode(
-                    trackedBarcode, parsedData.brush, overlay, switchToOverlayWorker = true
+                trackedBarcode, data.brush, overlay, switchToOverlayWorker = true
             )
             callbackContext.success()
         }
     }
     //endregion
 
-    //region ActionSendTapOnTrackedBarcode.ResultListener
-    override fun onSendTapOnTrackedBarcodeActionExecuted(
-            message: JSONObject, callbackContext: CallbackContext
-    ) {
-        callbackContext.sendPluginResult(
-                PluginResult(PluginResult.Status.OK, message).apply {
-                    keepCallback = true
-                }
+    //region ActionSubscribeAdvancedOverlay.ResultListener
+    override fun onSubscribeToAdvancedOverlay(callbackContext: CallbackContext) {
+        barcodeCallbacks.setBarcodeTrackingAdvancedOverlayCallback(
+            BarcodeTrackingAdvancedOverlayCallback(
+                actionsHandler,
+                callbackContext,
+                AdvancedOverlayViewPool(cordova.context),
+                uiWorker
+            )
         )
+        callbackContext.successAndKeepCallback()
+    }
+    //endregion
+
+    //region ActionSetViewForTrackedBarcode.ResultListener
+    override fun onViewForTrackedBarcode(
+        data: SerializableAdvancedOverlayViewActionData, callbackContext: CallbackContext
+    ) {
+        getAdvancedOverlayActionDoneData()?.let { (overlay, trackingCallback, overlayCallback) ->
+            val trackedBarcode = trackingCallback.getTrackedBarcodeFromLatestSession(
+                data.trackedBarcodeId, data.sessionFrameSequenceId
+            ) ?: return ErrorTrackedBarcodeNotFound().sendResult(callbackContext)
+
+            overlayCallback.setViewForTrackedBarcode(
+                trackedBarcode, data.view, overlay, switchToOverlayWorker = true
+            )
+        }
+        callbackContext.success()
+    }
+    //endregion
+
+    //region ActionSetOffsetForTrackedBarcode.ResultListener
+    override fun onOffsetForTrackedBarcode(
+        data: SerializableAdvancedOverlayOffsetActionData, callbackContext: CallbackContext
+    ) {
+        getAdvancedOverlayActionDoneData()?.let { (overlay, trackingCallback, overlayCallback) ->
+            val trackedBarcode = trackingCallback.getTrackedBarcodeFromLatestSession(
+                data.trackedBarcodeId, data.sessionFrameSequenceId
+            ) ?: return ErrorTrackedBarcodeNotFound().sendResult(callbackContext)
+
+            overlayCallback.setOffsetForTrackedBarcode(
+                trackedBarcode, data.offset, overlay, switchToOverlayWorker = true
+            )
+        }
+        callbackContext.success()
+    }
+    //endregion
+
+    //region ActionSetAnchorForTrackedBarcode.ResultListener
+    override fun onAnchorForTrackedBarcode(
+        data: SerializableAdvancedOverlayAnchorActionData, callbackContext: CallbackContext
+    ) {
+        getAdvancedOverlayActionDoneData()?.let { (overlay, trackingCallback, overlayCallback) ->
+            val trackedBarcode = trackingCallback.getTrackedBarcodeFromLatestSession(
+                data.trackedBarcodeId, data.sessionFrameSequenceId
+            ) ?: return ErrorTrackedBarcodeNotFound().sendResult(callbackContext)
+
+            overlayCallback.setAnchorForTrackedBarcode(
+                trackedBarcode, data.anchor, overlay, switchToOverlayWorker = true
+            )
+        }
+        callbackContext.success()
+    }
+    //endregion
+
+    //region ActionClearTrackedBarcodeViews.ResultListener
+    override fun onClearTrackedBarcodeViews(callbackContext: CallbackContext) {
+        getAdvancedOverlayActionDoneData()?.let { (overlay, _, overlayCallback) ->
+            overlayCallback.clearViews(overlay, switchToOverlayWorker = true)
+        }
+        callbackContext.success()
     }
     //endregion
     //endregion
+
+    private fun getAdvancedOverlayActionDoneData(): Triple<
+        BarcodeTrackingAdvancedOverlay,
+        BarcodeTrackingCallback,
+        BarcodeTrackingAdvancedOverlayCallback>? {
+
+        val overlay = barcodeTrackingAdvancedOverlayHandler.barcodeTrackingAdvancedOverlay
+            ?: return null
+        val barcodeTrackingCallback = barcodeCallbacks.barcodeTrackingCallback ?: return null
+        val overlayCallback = barcodeCallbacks.barcodeTrackingAdvancedOverlayCallback ?: return null
+
+        return Triple(overlay, barcodeTrackingCallback, overlayCallback)
+    }
 }
 
 interface BarcodeActionsListeners : ActionInjectDefaults.ResultListener,
-        ActionSubscribeBarcodeCapture.ResultListener,
-        ActionSubscribeBarcodeTracking.ResultListener,
-        ActionSendSessionUpdated.ResultListener,
-        ActionSendTrackingSessionUpdated.ResultListener,
-        ActionSendBarcodeScanned.ResultListener,
-        ActionFinishCallback.ResultListener,
-        ActionSubscribeBasicOverlay.ResultListener,
-        ActionClearTrackedBarcodeBrushes.ResultListener,
-        ActionSendBrushForTrackedBarcode.ResultListener,
-        ActionSetBrushForTrackedBarcode.ResultListener,
-        ActionSendTapOnTrackedBarcode.ResultListener
+    ActionSubscribeBarcodeCapture.ResultListener,
+    ActionSubscribeBarcodeTracking.ResultListener,
+    ActionFinishCallback.ResultListener,
+    ActionSubscribeBasicOverlay.ResultListener,
+    ActionSubscribeAdvancedOverlay.ResultListener,
+    ActionClearTrackedBarcodeBrushes.ResultListener,
+    ActionSetBrushForTrackedBarcode.ResultListener,
+    ActionSend.ResultListener,
+    ActionSetViewForTrackedBarcode.ResultListener,
+    ActionSetOffsetForTrackedBarcode.ResultListener,
+    ActionSetAnchorForTrackedBarcode.ResultListener,
+    ActionClearTrackedBarcodeViews.ResultListener
