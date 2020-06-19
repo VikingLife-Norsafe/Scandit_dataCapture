@@ -234,8 +234,9 @@ class ScanditBarcodeCapture: CDVPlugin, DataCapturePlugin {
     }
 
     func waitForFinished(_ listenerEvent: ListenerEvent, callbackId: String) {
-        commandDelegate.send(.listenerCallback(listenerEvent), callbackId: callbackId)
-        callbackLocks.wait(for: listenerEvent.name)
+        callbackLocks.wait(for: listenerEvent.name, afterDoing: {
+            commandDelegate.send(.listenerCallback(listenerEvent), callbackId: callbackId)
+        })
     }
 
     func finishBlockingCallback(with mode: DataCaptureMode, for listenerEvent: ListenerEvent) {
