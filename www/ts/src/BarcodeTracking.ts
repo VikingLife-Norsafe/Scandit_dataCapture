@@ -77,10 +77,6 @@ export class BarcodeTracking extends DefaultSerializeable implements DataCapture
     }
 
     public addListener(listener: BarcodeTrackingListener): void {
-        if (!listener) {
-            return;
-        }
-
         if (this.listeners.includes(listener)) {
             return;
         }
@@ -88,10 +84,6 @@ export class BarcodeTracking extends DefaultSerializeable implements DataCapture
     }
 
     public removeListener(listener: BarcodeTrackingListener): void {
-        if (!listener) {
-            return;
-        }
-
         if (!this.listeners.includes(listener)) {
             return;
         }

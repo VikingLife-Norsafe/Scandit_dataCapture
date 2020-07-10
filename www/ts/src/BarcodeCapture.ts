@@ -65,6 +65,8 @@ export class BarcodeCapture extends DefaultSerializeable implements DataCaptureM
 
   @ignoreFromSerialization
   private listenerProxy: Optional<BarcodeCaptureListenerProxy> = null;
+
+  @ignoreFromSerialization
   private isInListenerCallback = false;
 
   public static forContext(context: Optional<DataCaptureContext>, settings: BarcodeCaptureSettings): BarcodeCapture {

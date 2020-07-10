@@ -24,7 +24,7 @@ extension ScanditBarcodeCapture: BarcodeTrackingAdvancedOverlayDelegate {
 
         return nil
     }
-    
+
     func barcodeTrackingAdvancedOverlay(_ overlay: BarcodeTrackingAdvancedOverlay, anchorFor trackedBarcode: TrackedBarcode) -> Anchor {
         guard let callback = callbacks.barcodeTrackingAdvancedOverlayListener else {
             return .center
@@ -48,7 +48,7 @@ extension ScanditBarcodeCapture: BarcodeTrackingAdvancedOverlayDelegate {
 
         return .center
     }
-    
+
     func barcodeTrackingAdvancedOverlay(_ overlay: BarcodeTrackingAdvancedOverlay, offsetFor trackedBarcode: TrackedBarcode) -> PointWithUnit {
         guard let callback = callbacks.barcodeTrackingAdvancedOverlayListener else {
             return .zero

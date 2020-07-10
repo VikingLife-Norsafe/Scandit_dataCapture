@@ -10,6 +10,7 @@ import com.scandit.datacapture.cordova.barcode.data.*
 import com.scandit.datacapture.cordova.barcode.tracking.callbacks.BarcodeTrackingAdvancedOverlayCallback
 import com.scandit.datacapture.cordova.barcode.tracking.callbacks.BarcodeTrackingBasicOverlayCallback
 import com.scandit.datacapture.cordova.barcode.tracking.callbacks.BarcodeTrackingCallback
+import com.scandit.datacapture.cordova.core.data.SerializableFinishModeCallbackData
 
 class BarcodeCallbackContainer {
 

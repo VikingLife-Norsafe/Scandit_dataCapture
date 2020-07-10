@@ -34,6 +34,7 @@ import com.scandit.datacapture.cordova.core.ScanditCaptureCore
 import com.scandit.datacapture.cordova.core.actions.ActionSend
 import com.scandit.datacapture.cordova.core.communication.CameraPermissionGrantedListener
 import com.scandit.datacapture.cordova.core.communication.ModeDeserializersProvider
+import com.scandit.datacapture.cordova.core.data.SerializableFinishModeCallbackData
 import com.scandit.datacapture.cordova.core.errors.InvalidActionNameError
 import com.scandit.datacapture.cordova.core.errors.JsonParseError
 import com.scandit.datacapture.cordova.core.factories.ActionFactory

@@ -8,9 +8,9 @@ package com.scandit.datacapture.cordova.barcode.callbacks
 
 import com.scandit.datacapture.barcode.capture.BarcodeCapture
 import com.scandit.datacapture.barcode.capture.BarcodeCaptureSession
-import com.scandit.datacapture.cordova.barcode.data.SerializableFinishModeCallbackData
 import com.scandit.datacapture.cordova.barcode.factories.BarcodeCaptureActionFactory
 import com.scandit.datacapture.cordova.core.callbacks.Callback
+import com.scandit.datacapture.cordova.core.data.SerializableFinishModeCallbackData
 import com.scandit.datacapture.cordova.core.handlers.ActionsHandler
 import com.scandit.datacapture.core.data.FrameData
 import org.apache.cordova.CallbackContext

@@ -6,7 +6,7 @@ import { LocationSelection, NoneLocationSelection } from 'LocationSelection';
 import { DefaultSerializeable, serializationDefault } from 'Serializeable';
 
 export class BarcodeCaptureSettings extends DefaultSerializeable {
-  public codeDuplicateFilter: number = 0;
+  public codeDuplicateFilter: number = Cordova.defaults.BarcodeCapture.BarcodeCaptureSettings.codeDuplicateFilter;
 
   @serializationDefault(NoneLocationSelection)
   public locationSelection: Optional<LocationSelection> = null;

@@ -57,16 +57,4 @@ struct BarcodeCaptureCallbackResult: BlockingListenerCallbackResult {
         }
         return PointWithUnit(JSONString: offsetString)
     }
-
-    static func from(_ command: CDVInvokedUrlCommand) -> BarcodeCaptureCallbackResult? {
-        guard let data = command.defaultArgumentAsString?.data(using: .utf8) else {
-            return nil
-        }
-        let decoder = JSONDecoder()
-        return try? decoder.decode(BarcodeCaptureCallbackResult.self, from: data)
-    }
-
-    func isForListenerEvent(_ listenerEventName: ListenerEvent.Name) -> Bool {
-        return finishCallbackID == listenerEventName
-    }
 }

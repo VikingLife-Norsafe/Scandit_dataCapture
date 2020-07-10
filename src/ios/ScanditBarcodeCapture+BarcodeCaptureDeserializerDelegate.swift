@@ -4,15 +4,7 @@ extension ScanditBarcodeCapture: BarcodeCaptureDeserializerDelegate {
     func barcodeCaptureDeserializer(_ deserializer: BarcodeCaptureDeserializer,
                                     didFinishDeserializingMode mode: BarcodeCapture,
                                     from JSONValue: JSONValue) {
-        let JSONString = JSONValue.jsonString()
-
-        guard let data = JSONString.data(using: .utf8),
-            let jsonObject = try? JSONSerialization.jsonObject(with: data),
-            let json = jsonObject as? [String: Any],
-            let enabled = json["enabled"] as? Bool else {
-                return
-        }
-        mode.isEnabled = enabled
+        mode.isEnabled = JSONValue.bool(forKey: "enabled")
 
         mode.addListener(self)
     }
@@ -37,4 +29,3 @@ extension ScanditBarcodeCapture: BarcodeCaptureDeserializerDelegate {
                                     didFinishDeserializingOverlay overlay: BarcodeCaptureOverlay,
                                     from JSONValue: JSONValue) { }
 }
-

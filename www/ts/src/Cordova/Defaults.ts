@@ -6,7 +6,7 @@ import {
   SymbologyDescription,
   SymbologySettings,
 } from 'Barcode';
-import { CameraSettings, PrivateCameraSettings } from 'Camera+Related';
+import { CameraSettings } from 'Camera+Related';
 import { Color, PrivateColor } from 'Common';
 import { CameraSettingsDefaultsJSON, PrivateCameraSettingsDefaults } from 'CoreDefaults';
 

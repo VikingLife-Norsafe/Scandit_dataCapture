@@ -278,12 +278,8 @@ export class Barcode {
     barcode._isColorInverted = json.isColorInverted;
     barcode._symbolCount = json.symbolCount;
     barcode._frameID = json.frameId;
-    if (json.encodingRanges) {
-      barcode._encodingRanges = json.encodingRanges.map((EncodingRange as any as PrivateEncodingRange).fromJSON);
-    }
-    if (json.location) {
-      barcode._location = (Quadrilateral as any as PrivateQuadrilateral).fromJSON(json.location);
-    }
+    barcode._encodingRanges = json.encodingRanges.map((EncodingRange as any as PrivateEncodingRange).fromJSON);
+    barcode._location = (Quadrilateral as any as PrivateQuadrilateral).fromJSON(json.location);
 
     return barcode;
   }

@@ -1,18 +1,5 @@
 import ScanditBarcodeCapture
 
-extension SymbologySettings {
-    func toJSON() -> String {
-        // TODO: use serialized SymbologySettings https://jira.scandit.com/browse/SDC-1002
-        return String(data: try! JSONSerialization.data(withJSONObject: [
-            "enabled": isEnabled,
-            "colorInvertedEnabled": isColorInvertedEnabled,
-            "activeSymbolCounts": Array(activeSymbolCounts),
-            "extensions": Array(enabledExtensions),
-            "checksums": [String]()
-        ]), encoding: .utf8)!
-    }
-}
-
 struct ScanditBarcodeCaptureDefaults: Encodable {
     typealias CameraSettingsDefaults = ScanditCaptureCoreDefaults.CameraSettingsDefaults
 
@@ -101,7 +88,7 @@ extension ScanditBarcodeCaptureDefaults.SymbologySettingsDefaults {
             into: [String: String](), {(result, symbologyDescription) in
                 let symbology = SymbologyDescription.symbology(fromIdentifier: symbologyDescription.identifier)
                 let settings = settings.settings(for: symbology)
-                result[symbologyDescription.identifier] = settings.toJSON()
+                result[symbologyDescription.identifier] = settings.jsonString
         })
     }
 }

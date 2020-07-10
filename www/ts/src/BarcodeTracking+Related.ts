@@ -129,8 +129,8 @@ export class BarcodeTrackingBasicOverlay extends DefaultSerializeable implements
     return this._shouldShowScanAreaGuides;
   }
 
-  public set shouldShowScanAreaGuides(newViewfinder: boolean) {
-    this._shouldShowScanAreaGuides = newViewfinder;
+  public set shouldShowScanAreaGuides(shouldShow: boolean) {
+    this._shouldShowScanAreaGuides = shouldShow;
     (this.barcodeTracking as any as PrivateBarcodeTracking).didChange();
   }
 
@@ -150,6 +150,10 @@ export class BarcodeTrackingBasicOverlay extends DefaultSerializeable implements
     overlay.initialize();
 
     return overlay;
+  }
+
+  private constructor() {
+    super();
   }
 
   public setBrushForTrackedBarcode(brush: Brush, trackedBarcode: TrackedBarcode): Promise<void> {
@@ -211,6 +215,10 @@ export class BarcodeTrackingAdvancedOverlay extends DefaultSerializeable impleme
     overlay.initialize();
 
     return overlay;
+  }
+
+  private constructor() {
+    super();
   }
 
   public setViewForTrackedBarcode(

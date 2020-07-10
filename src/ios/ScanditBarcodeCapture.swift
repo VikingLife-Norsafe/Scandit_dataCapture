@@ -21,17 +21,6 @@ class BarcodeCaptureCallbacks {
     }
 }
 
-extension CDVPluginResult {
-    /// Success result with defaults.
-    static func success(message: ScanditBarcodeCaptureDefaults) -> CDVPluginResult {
-        guard let data = try? JSONEncoder().encode(message),
-            let object = try? JSONSerialization.jsonObject(with: data) as? JSONMessage else {
-                return .failure(with: "Could not serialize message")
-        }
-        return CDVPluginResult(status: CDVCommandStatus_OK, messageAs: object)
-    }
-}
-
 @objc(ScanditBarcodeCapture)
 class ScanditBarcodeCapture: CDVPlugin, DataCapturePlugin {
     lazy var modeDeserializers: [DataCaptureModeDeserializer] = {
@@ -52,7 +41,7 @@ class ScanditBarcodeCapture: CDVPlugin, DataCapturePlugin {
     lazy var advancedOverlayListenerQueue = DispatchQueue(label: "advancedOverlayListenerQueue")
     var barcodeTrackingBasicOverlay: BarcodeTrackingBasicOverlay?
     var barcodeTrackingAdvancedOverlay: BarcodeTrackingAdvancedOverlay?
-    var lastTrackedBarcodes: [NSNumber : TrackedBarcode]?
+    var lastTrackedBarcodes: [NSNumber: TrackedBarcode]?
     var lastFrameSequenceId: Int?
 
     override func pluginInitialize() {
@@ -345,4 +334,3 @@ class ScanditBarcodeCapture: CDVPlugin, DataCapturePlugin {
         return trackedBarcode
     }
 }
-

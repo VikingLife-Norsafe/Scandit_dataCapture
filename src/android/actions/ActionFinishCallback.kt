@@ -9,6 +9,7 @@ package com.scandit.datacapture.cordova.barcode.actions
 import com.scandit.datacapture.cordova.barcode.data.*
 import com.scandit.datacapture.cordova.barcode.utils.FinishCallbackHelper
 import com.scandit.datacapture.cordova.core.actions.Action
+import com.scandit.datacapture.cordova.core.data.SerializableFinishModeCallbackData
 import org.apache.cordova.CallbackContext
 import org.json.JSONArray
 import org.json.JSONException

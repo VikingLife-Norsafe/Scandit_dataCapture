@@ -12,8 +12,13 @@ import { BarcodeCapture, PrivateBarcodeCapture } from 'BarcodeCapture';
 import { Cordova } from 'Cordova/Cordova';
 import { DataCaptureOverlay, DataCaptureView } from 'DataCaptureView';
 import { Feedback } from 'Feedback';
-import { DefaultSerializeable, nameForSerialization, serializationDefault } from 'Serializeable';
-import { Brush, Viewfinder } from 'Viewfinder';
+import {
+  DefaultSerializeable,
+  ignoreFromSerialization,
+  nameForSerialization,
+  serializationDefault,
+} from 'Serializeable';
+import { Brush, NoViewfinder, Viewfinder } from 'Viewfinder';
 
 export class BarcodeCaptureSession {
   private _newlyRecognizedBarcodes: Barcode[];
@@ -23,9 +28,11 @@ export class BarcodeCaptureSession {
   public get newlyRecognizedBarcodes(): Barcode[] {
     return this._newlyRecognizedBarcodes;
   }
+
   public get newlyLocalizedBarcodes(): LocalizedOnlyBarcode[] {
     return this._newlyLocalizedBarcodes;
   }
+
   public get frameSequenceID(): number {
     return this._frameSequenceID;
   }
@@ -65,12 +72,10 @@ export class BarcodeCaptureFeedback extends DefaultSerializeable {
   }
 }
 
-// tslint:disable-next-line:variable-name
-const NoViewfinder = { type: 'none' };
-
 export class BarcodeCaptureOverlay extends DefaultSerializeable implements DataCaptureOverlay {
   private type = 'barcodeCapture';
 
+  @ignoreFromSerialization
   private barcodeCapture: BarcodeCapture;
 
   @nameForSerialization('shouldShowScanAreaGuides')
@@ -103,8 +108,8 @@ export class BarcodeCaptureOverlay extends DefaultSerializeable implements DataC
     return this._shouldShowScanAreaGuides;
   }
 
-  public set shouldShowScanAreaGuides(newViewfinder: boolean) {
-    this._shouldShowScanAreaGuides = newViewfinder;
+  public set shouldShowScanAreaGuides(shouldShow: boolean) {
+    this._shouldShowScanAreaGuides = shouldShow;
     (this.barcodeCapture as any as PrivateBarcodeCapture).didChange();
   }
 
@@ -120,5 +125,9 @@ export class BarcodeCaptureOverlay extends DefaultSerializeable implements DataC
       view.addOverlay(overlay);
     }
     return overlay;
+  }
+
+  private constructor() {
+    super();
   }
 }
