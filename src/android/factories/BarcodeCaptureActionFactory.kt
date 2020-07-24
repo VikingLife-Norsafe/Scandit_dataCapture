@@ -7,7 +7,18 @@
 package com.scandit.datacapture.cordova.barcode.factories
 
 import com.scandit.datacapture.cordova.barcode.BarcodeActionsListeners
-import com.scandit.datacapture.cordova.barcode.actions.*
+import com.scandit.datacapture.cordova.barcode.actions.ActionClearTrackedBarcodeBrushes
+import com.scandit.datacapture.cordova.barcode.actions.ActionClearTrackedBarcodeViews
+import com.scandit.datacapture.cordova.barcode.actions.ActionFinishCallback
+import com.scandit.datacapture.cordova.barcode.actions.ActionInjectDefaults
+import com.scandit.datacapture.cordova.barcode.actions.ActionSetAnchorForTrackedBarcode
+import com.scandit.datacapture.cordova.barcode.actions.ActionSetBrushForTrackedBarcode
+import com.scandit.datacapture.cordova.barcode.actions.ActionSetOffsetForTrackedBarcode
+import com.scandit.datacapture.cordova.barcode.actions.ActionSetViewForTrackedBarcode
+import com.scandit.datacapture.cordova.barcode.actions.ActionSubscribeAdvancedOverlay
+import com.scandit.datacapture.cordova.barcode.actions.ActionSubscribeBarcodeCapture
+import com.scandit.datacapture.cordova.barcode.actions.ActionSubscribeBarcodeTracking
+import com.scandit.datacapture.cordova.barcode.actions.ActionSubscribeBasicOverlay
 import com.scandit.datacapture.cordova.barcode.utils.FinishCallbackHelper
 import com.scandit.datacapture.cordova.core.actions.Action
 import com.scandit.datacapture.cordova.core.actions.ActionSend
@@ -17,8 +28,6 @@ import com.scandit.datacapture.cordova.core.factories.ActionFactory
 class BarcodeCaptureActionFactory(
     private val listener: BarcodeActionsListeners
 ) : ActionFactory {
-
-    override val actionsNotDependentOnCameraPermission = ACTIONS_NOT_DEPENDING_ON_CAMERA
 
     @Throws(InvalidActionNameError::class)
     override fun provideAction(actionName: String): Action {
@@ -47,6 +56,8 @@ class BarcodeCaptureActionFactory(
             else -> throw InvalidActionNameError(actionName)
         }
     }
+
+    override fun canBeRunWithoutCameraPermission(actionName: String): Boolean = true
 
     private fun createActionInjectDefaults(): Action = ActionInjectDefaults(listener)
 
@@ -192,7 +203,5 @@ class BarcodeCaptureActionFactory(
         const val ACTION_TAP_VIEW_FOR_TRACKED_BARCODE = "didTapViewForTrackedBarcode"
 
         const val SEND_TRACKING_SESSION_UPDATED_EVENT = "sendTrackingSessionUpdateEvent"
-
-        private val ACTIONS_NOT_DEPENDING_ON_CAMERA = setOf(INJECT_DEFAULTS)
     }
 }
