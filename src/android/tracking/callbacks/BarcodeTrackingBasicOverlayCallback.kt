@@ -47,7 +47,7 @@ class BarcodeTrackingBasicOverlayCallback(
         } else {
             brushForTrackedBarcode(overlay, trackedBarcode)
         }
-        return Brush.transparent()
+        return Brush(0x00B2CCE5.toInt(), 0x00B2CCE5.toInt(), 0f)
     }
 
     private fun brushForTrackedBarcode(
@@ -114,7 +114,7 @@ class BarcodeTrackingBasicOverlayCallback(
             latestStateData.set(null)
         } ?: setBrushForTrackedBarcode(
                 // If we don't have the latestData, use the overlay default brush.
-                trackedBarcode, overlay.defaultBrush, overlay, switchToOverlayWorker = false
+                trackedBarcode, overlay.brush, overlay, switchToOverlayWorker = false
         )
     }
 

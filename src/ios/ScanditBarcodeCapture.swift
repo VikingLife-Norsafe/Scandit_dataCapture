@@ -258,7 +258,7 @@ class ScanditBarcodeCapture: CDVPlugin, DataCapturePlugin {
         if callbackResult.isForListenerEvent(.brushForTrackedBarcode) {
             /// Listener didn't return a brush, e.g. set listener didn't implement the function.
             if callbackResult.result == nil {
-                overlay.setBrush(overlay.defaultBrush, for: trackedBarcode)
+                overlay.setBrush(overlay.brush, for: trackedBarcode)
                 return
             }
 

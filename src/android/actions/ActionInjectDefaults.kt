@@ -70,7 +70,7 @@ class ActionInjectDefaults(
                             ),
                             trackingBasicOverlayDefaults = SerializableTrackingBasicOverlayDefaults(
                                     defaultBrush = SerializableBrushDefaults(
-                                            brush = overlay.defaultBrush
+                                            brush = BarcodeTrackingBasicOverlay.DEFAULT_BRUSH
                                     )
                             )
                     )

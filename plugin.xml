@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <plugin id="scandit-cordova-datacapture-barcode"
-    version="6.4.1"
+    version="6.4.2"
     xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -74,10 +74,10 @@
         <source-file src="src/ios/TappableBase64ImageView.swift" />
         <source-file src="src/ios/CommandJSONArgument+ScanditBarcodeCapture.swift" />
 
-        <dependency id="scandit-cordova-datacapture-core" version="6.4.1" />
+        <dependency id="scandit-cordova-datacapture-core" version="6.4.2" />
 
         <framework custom="true" embed="true"
-            src="src/ios/framework/ScanditBarcodeCapture.framework" version="6.4.1" />
+            src="src/ios/framework/ScanditBarcodeCapture.framework" version="6.4.2" />
 
         <hook src="src/hooks/build.js" type="before_plugin_install" />
         <hook src="src/hooks/add-frameworks.js" type="before_plugin_install" />
@@ -175,12 +175,12 @@
         <source-file src="src/android/errors/ErrorTrackedBarcodeNotFound.kt"
             target-dir="kotlin/com/scandit/datacapture/cordova/barcode/errors" />
 
-        <dependency id="scandit-cordova-datacapture-core" version="6.4.1" />
+        <dependency id="scandit-cordova-datacapture-core" version="6.4.2" />
 
         <framework custom="true" src="src/android/build.gradle" type="gradleReference" />
 
         <resource-file custom="true"
-            src="src/android/library/ScanditBarcodeCapture.aar" target="libs/ScanditBarcodeCapture.aar" version="6.4.1" />
+            src="src/android/library/ScanditBarcodeCapture.aar" target="libs/ScanditBarcodeCapture.aar" version="6.4.2" />
 
         <hook src="src/hooks/build.js" type="before_plugin_install" />
         <hook src="src/hooks/add-frameworks.js" type="before_plugin_install" />

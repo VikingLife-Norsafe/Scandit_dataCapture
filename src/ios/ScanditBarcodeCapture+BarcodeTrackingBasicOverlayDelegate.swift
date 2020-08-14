@@ -4,7 +4,7 @@ extension ScanditBarcodeCapture: BarcodeTrackingBasicOverlayDelegate {
     func barcodeTrackingBasicOverlay(_ overlay: BarcodeTrackingBasicOverlay,
                                      brushFor trackedBarcode: TrackedBarcode) -> Brush? {
         guard let callback = callbacks.barcodeTrackingBasicOverlayListener else {
-            return overlay.defaultBrush
+            return overlay.brush
         }
 
         let listenerEvent = ListenerEvent(name: .brushForTrackedBarcode,
@@ -22,7 +22,8 @@ extension ScanditBarcodeCapture: BarcodeTrackingBasicOverlayDelegate {
             self.finishBlockingCallback(with: overlay, and: trackedBarcode, for: listenerEvent)
         }
 
-        return Brush.transparent
+        let color = UIColor(red: 0.7, green: 0.8, blue: 0.9, alpha: 0)
+        return Brush(fill: color, stroke: color, strokeWidth: 0)
     }
 
     func barcodeTrackingBasicOverlay(_ overlay: BarcodeTrackingBasicOverlay,

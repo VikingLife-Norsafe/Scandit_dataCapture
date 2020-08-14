@@ -62,14 +62,14 @@ extension ScanditBarcodeCaptureDefaults.BarcodeTrackingDefaultsContainer {
 
 extension ScanditBarcodeCaptureDefaults.BarcodeCaptureOverlayDefaults {
     static func from(_ overlay: BarcodeCaptureOverlay) -> ScanditBarcodeCaptureDefaults.BarcodeCaptureOverlayDefaults {
-        let brush = ScanditCaptureCoreDefaults.BrushDefaults.from(overlay.brush)
+        let brush = ScanditCaptureCoreDefaults.BrushDefaults.from(BarcodeCaptureOverlay.defaultBrush)
         return ScanditBarcodeCaptureDefaults.BarcodeCaptureOverlayDefaults(Brush: brush)
     }
 }
 
 extension ScanditBarcodeCaptureDefaults.BarcodeTrackingBasicOverlayDefaults {
     static func from(_ basicOverlay: BarcodeTrackingBasicOverlay) -> ScanditBarcodeCaptureDefaults.BarcodeTrackingBasicOverlayDefaults {
-        let brush = ScanditCaptureCoreDefaults.BrushDefaults.from(basicOverlay.defaultBrush ?? .transparent)
+        let brush = ScanditCaptureCoreDefaults.BrushDefaults.from(BarcodeTrackingBasicOverlay.defaultBrush)
         return ScanditBarcodeCaptureDefaults.BarcodeTrackingBasicOverlayDefaults(DefaultBrush: brush)
     }
 }
